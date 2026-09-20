@@ -1,0 +1,204 @@
+可以。你这次的完整 Git 操作可以记成下面这套流程，以后基本照着做就行。
+
+Git Push .md 文件完整流程
+
+你的实际目标是：
+
+本地 6class8group
+        ↓
+创建 SJQ_branch
+        ↓
+创建/修改 SJQ.md
+        ↓
+git add
+        ↓
+git commit
+        ↓
+git push
+        ↓
+GitHub / SJQ_branch
+一、第一次操作：进入项目
+cd ~/Desktop/6class8group
+
+确认项目状态：
+
+git status
+二、创建自己的分支
+
+第一次创建：
+
+git switch -c SJQ_branch
+
+检查：
+
+git branch
+
+看到：
+
+* SJQ_branch
+  main
+
+说明现在就在自己的分支。
+
+* 表示当前所在分支。
+
+三、创建 .md 文件
+
+在 6class8group 文件夹里面创建：
+
+SJQ.md
+
+例如：
+
+# SJQ
+
+这是我的 Markdown 文件。
+
+保存。
+
+你的目录类似：
+
+6class8group/
+├── README.md
+├── LICENSE
+├── doc/
+├── src/
+└── SJQ.md
+四、查看 Git 状态
+git status
+
+如果看到：
+
+Untracked files:
+    SJQ.md
+
+说明 Git 发现了这个新文件。
+
+五、添加文件
+git add SJQ.md
+
+再检查：
+
+git status
+
+应该出现：
+
+Changes to be committed:
+    new file: SJQ.md
+六、Commit
+git commit -m "Add SJQ markdown file"
+
+成功后类似：
+
+[SJQ_branch 811f97d] Add SJQ markdown file
+1 file changed
+
+这表示：
+
+文件已经提交到本地 Git 历史。
+
+但这时候还没有上传到 GitHub。
+
+七、第一次 Push
+
+第一次 push 这个新分支：
+
+git push -u origin SJQ_branch
+
+GitHub 如果要求：
+
+Username for 'https://github.com':
+
+输入你的 GitHub 用户名：
+
+a114511a
+
+然后：
+
+Password for 'https://a114511a@github.com':
+
+这里不是输入 GitHub 登录密码。
+
+需要使用 GitHub Personal Access Token。
+
+你这次最终使用 Token 成功完成了认证。
+
+八、看到这个就代表成功
+
+你这次最终出现：
+
+To https://github.com/EthanZF/6class8group.git
+ * [new branch]      SJQ_branch -> SJQ_branch
+
+分支 'SJQ_branch' 设置为跟踪 'origin/SJQ_branch'。
+
+这意味着：
+
+本地 SJQ_branch
+       ↓
+       ↓ git push
+       ↓
+GitHub SJQ_branch
+       ↓
+   SJQ.md ✅
+九、以后修改这个文件
+
+因为第一次：
+
+git push -u origin SJQ_branch
+
+已经建立了本地和远程分支的关联。
+
+所以以后修改 SJQ.md，只需要：
+
+git add SJQ.md
+git commit -m "Update SJQ.md"
+git push
+
+也就是：
+
+修改文件
+  ↓
+git add
+  ↓
+git commit
+  ↓
+git push
+⭐ 最常用的 Git 口诀
+
+你以后可以直接记：
+
+git status
+git add 文件名
+git commit -m "说明"
+git push
+
+例如：
+
+git status
+git add SJQ.md
+git commit -m "Update SJQ.md"
+git push
+如果是第一次创建分支：
+git switch -c SJQ_branch
+如果以后已经存在这个分支：
+git switch SJQ_branch
+最终给你一张速查表
+目的	命令
+进入项目	cd ~/Desktop/6class8group
+查看状态	git status
+查看分支	git branch
+创建分支	git switch -c SJQ_branch
+切换分支	git switch SJQ_branch
+添加文件	git add SJQ.md
+提交	git commit -m "Add SJQ markdown file"
+第一次 Push	git push -u origin SJQ_branch
+后续 Push	git push
+
+最重要的是理解：
+
+git add      → 告诉 Git 哪些文件要提交
+git commit   → 保存到本地 Git
+git push     → 上传到 GitHub
+
+这三个是你以后最常用的 Git 命令。
