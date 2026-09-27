@@ -1,4 +1,4 @@
-# DjangoBlog
+# 6-8-# DjangoBlog
 
 <p align="center">
   <a href="https://github.com/liangliangyy/DjangoBlog/actions/workflows/django.yml"><img src="https://github.com/liangliangyy/DjangoBlog/actions/workflows/django.yml/badge.svg" alt="Django CI"></a>
@@ -218,3 +218,10 @@ npm run dev
 学号：2415304631
 
 班级：软件工程6班
+# 6-8-
+
+## 潘少杰
+
+- **姓名**：潘少杰
+- **学号**：2415304633
+- **班级**：软工6班
