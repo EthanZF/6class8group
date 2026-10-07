@@ -1,0 +1,88 @@
+[2026-09-15 20:12:20,403] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章结尾版权声明 initialized.
+[2026-09-15 20:12:20,403] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章结尾版权声明 initialized.
+[2026-09-15 20:12:20,405] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: article_copyright - 文章结尾版权声明
+[2026-09-15 20:12:20,405] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: article_copyright - 文章结尾版权声明
+[2026-09-15 20:12:20,406] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 阅读时间预测 initialized.
+[2026-09-15 20:12:20,406] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 阅读时间预测 initialized.
+[2026-09-15 20:12:20,407] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: reading_time - 阅读时间预测
+[2026-09-15 20:12:20,407] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: reading_time - 阅读时间预测
+[2026-09-15 20:12:20,408] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 外部链接处理器 initialized.
+[2026-09-15 20:12:20,408] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 外部链接处理器 initialized.
+[2026-09-15 20:12:20,408] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: external_links - 外部链接处理器
+[2026-09-15 20:12:20,408] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: external_links - 外部链接处理器
+[2026-09-15 20:12:20,410] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章浏览次数统计 initialized.
+[2026-09-15 20:12:20,410] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章浏览次数统计 initialized.
+[2026-09-15 20:12:20,410] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: view_count - 文章浏览次数统计
+[2026-09-15 20:12:20,410] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: view_count - 文章浏览次数统计
+[2026-09-15 20:12:20,411] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] SEO 优化器 initialized.
+[2026-09-15 20:12:20,411] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] SEO 优化器 initialized.
+[2026-09-15 20:12:20,411] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: seo_optimizer - SEO 优化器
+[2026-09-15 20:12:20,411] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: seo_optimizer - SEO 优化器
+[2026-09-15 20:12:20,413] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 图片性能优化插件 initialized.
+[2026-09-15 20:12:20,413] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 图片性能优化插件 initialized.
+[2026-09-15 20:12:20,413] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: image_lazy_loading - 图片性能优化插件
+[2026-09-15 20:12:20,413] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: image_lazy_loading - 图片性能优化插件
+[2026-09-15 20:12:20,414] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章推荐 initialized.
+[2026-09-15 20:12:20,414] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章推荐 initialized.
+[2026-09-15 20:12:20,414] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: article_recommendation - 文章推荐
+[2026-09-15 20:12:20,414] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: article_recommendation - 文章推荐
+[2026-09-15 20:12:20,416] INFO [plugins.cloudflare_cache.plugin.init_plugin:68 plugin] Initializing Cloudflare 缓存管理 v1.0.0
+[2026-09-15 20:12:20,416] ERROR [plugins.cloudflare_cache.plugin._validate_config:104 plugin] [CF Plugin] CLOUDFLARE_ZONE_ID not configured
+[2026-09-15 20:12:20,416] INFO [plugins.cloudflare_cache.plugin._validate_config:105 plugin] [CF Plugin] Please set environment variable: CLOUDFLARE_ZONE_ID
+[2026-09-15 20:12:20,416] WARNING [plugins.cloudflare_cache.plugin.init_plugin:80 plugin] [CF Plugin] Plugin disabled due to invalid configuration
+[2026-09-15 20:12:20,416] INFO [plugins.cloudflare_cache.plugin.register_hooks:184 plugin] [CF Plugin] Plugin is disabled, skipping hook registration
+[2026-09-15 20:12:20,416] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: cloudflare_cache - Cloudflare 缓存管理
+[2026-09-15 20:12:20,416] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: cloudflare_cache - Cloudflare 缓存管理
+[2026-09-15 20:12:21,124] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章结尾版权声明 initialized.
+[2026-09-15 20:12:21,124] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章结尾版权声明 initialized.
+[2026-09-15 20:12:21,125] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: article_copyright - 文章结尾版权声明
+[2026-09-15 20:12:21,125] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: article_copyright - 文章结尾版权声明
+[2026-09-15 20:12:21,126] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 阅读时间预测 initialized.
+[2026-09-15 20:12:21,126] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 阅读时间预测 initialized.
+[2026-09-15 20:12:21,126] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: reading_time - 阅读时间预测
+[2026-09-15 20:12:21,126] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: reading_time - 阅读时间预测
+[2026-09-15 20:12:21,128] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 外部链接处理器 initialized.
+[2026-09-15 20:12:21,128] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 外部链接处理器 initialized.
+[2026-09-15 20:12:21,128] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: external_links - 外部链接处理器
+[2026-09-15 20:12:21,128] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: external_links - 外部链接处理器
+[2026-09-15 20:12:21,130] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章浏览次数统计 initialized.
+[2026-09-15 20:12:21,130] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章浏览次数统计 initialized.
+[2026-09-15 20:12:21,130] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: view_count - 文章浏览次数统计
+[2026-09-15 20:12:21,130] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: view_count - 文章浏览次数统计
+[2026-09-15 20:12:21,131] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] SEO 优化器 initialized.
+[2026-09-15 20:12:21,131] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] SEO 优化器 initialized.
+[2026-09-15 20:12:21,131] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: seo_optimizer - SEO 优化器
+[2026-09-15 20:12:21,131] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: seo_optimizer - SEO 优化器
+[2026-09-15 20:12:21,133] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 图片性能优化插件 initialized.
+[2026-09-15 20:12:21,133] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 图片性能优化插件 initialized.
+[2026-09-15 20:12:21,133] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: image_lazy_loading - 图片性能优化插件
+[2026-09-15 20:12:21,133] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: image_lazy_loading - 图片性能优化插件
+[2026-09-15 20:12:21,135] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章推荐 initialized.
+[2026-09-15 20:12:21,135] INFO [djangoblog.plugin_manage.base_plugin.init_plugin:48 base_plugin] 文章推荐 initialized.
+[2026-09-15 20:12:21,135] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: article_recommendation - 文章推荐
+[2026-09-15 20:12:21,135] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: article_recommendation - 文章推荐
+[2026-09-15 20:12:21,137] INFO [plugins.cloudflare_cache.plugin.init_plugin:68 plugin] Initializing Cloudflare 缓存管理 v1.0.0
+[2026-09-15 20:12:21,137] ERROR [plugins.cloudflare_cache.plugin._validate_config:104 plugin] [CF Plugin] CLOUDFLARE_ZONE_ID not configured
+[2026-09-15 20:12:21,137] INFO [plugins.cloudflare_cache.plugin._validate_config:105 plugin] [CF Plugin] Please set environment variable: CLOUDFLARE_ZONE_ID
+[2026-09-15 20:12:21,138] WARNING [plugins.cloudflare_cache.plugin.init_plugin:80 plugin] [CF Plugin] Plugin disabled due to invalid configuration
+[2026-09-15 20:12:21,138] INFO [plugins.cloudflare_cache.plugin.register_hooks:184 plugin] [CF Plugin] Plugin is disabled, skipping hook registration
+[2026-09-15 20:12:21,138] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: cloudflare_cache - Cloudflare 缓存管理
+[2026-09-15 20:12:21,138] INFO [djangoblog.plugin_manage.loader.load_plugins:29 loader] Successfully loaded plugin: cloudflare_cache - Cloudflare 缓存管理
+[2026-09-15 20:12:21,164] INFO [django.utils.autoreload.run_with_reloader:667 autoreload] Watching for file changes with StatReloader
+[2026-09-15 20:12:25,595] INFO [djangoblog.mixins.get_queryset_from_cache:218 mixins] Cache MISS: index_1
+[2026-09-15 20:12:25,595] INFO [djangoblog.mixins.get_queryset_from_cache:218 mixins] Cache MISS: index_1
+[2026-09-15 20:12:25,611] INFO [djangoblog.utils.get_blog_setting:173 utils] set cache get_blog_setting
+[2026-09-15 20:12:25,611] INFO [djangoblog.utils.get_blog_setting:173 utils] set cache get_blog_setting
+[2026-09-15 20:12:25,629] INFO [blog.context_processors.seo_processor:20 context_processors] set processor cache.
+[2026-09-15 20:12:25,666] INFO [blog.templatetags.vite_tags.load_manifest:50 vite_tags] ✅ Vite manifest loaded from: E:\projects\DjangoBlog-master\DjangoBlog-master\blog/static/blog/dist/.vite/manifest.json
+[2026-09-15 20:12:25,881] INFO [blog.templatetags.blog_tags.load_sidebar:262 blog_tags] load sidebar
+[2026-09-15 20:12:25,913] INFO [blog.templatetags.blog_tags.load_sidebar:321 blog_tags] set sidebar cache.key:sidebarp
+[2026-09-15 20:12:27,132] WARNING [django.request.log_response:253 log] Not Found: /favicon.ico
+[2026-09-15 20:12:50,996] INFO [djangoblog.mixins.get_queryset_from_cache:213 mixins] Cache HIT: index_1
+[2026-09-15 20:12:50,996] INFO [djangoblog.mixins.get_queryset_from_cache:213 mixins] Cache HIT: index_1
+[2026-09-15 20:12:50,998] INFO [blog.templatetags.vite_tags.load_manifest:50 vite_tags] ✅ Vite manifest loaded from: E:\projects\DjangoBlog-master\DjangoBlog-master\blog/static/blog/dist/.vite/manifest.json
+[2026-09-15 20:12:56,096] INFO [djangoblog.mixins.get_queryset_from_cache:218 mixins] Cache MISS: category_list_子类目_1
+[2026-09-15 20:12:56,096] INFO [djangoblog.mixins.get_queryset_from_cache:218 mixins] Cache MISS: category_list_子类目_1
+[2026-09-15 20:12:56,097] INFO [djangoblog.mixins.get_queryset_from_cache:213 mixins] Cache HIT: category_list_子类目_1
+[2026-09-15 20:12:56,097] INFO [djangoblog.mixins.get_queryset_from_cache:213 mixins] Cache HIT: category_list_子类目_1
+[2026-09-15 20:12:56,100] INFO [blog.templatetags.vite_tags.load_manifest:50 vite_tags] ✅ Vite manifest loaded from: E:\projects\DjangoBlog-master\DjangoBlog-master\blog/static/blog/dist/.vite/manifest.json
