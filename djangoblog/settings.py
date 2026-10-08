@@ -8,154 +8,196 @@ https://docs.djangoproject.com/en/1.10/topics/settings/
 
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
+
+本文件是整个 Django 项目的"全局配置中心":
+数据库、应用注册、中间件、模板、静态文件、缓存、日志、邮件、
+搜索、插件系统等所有全局开关都在这里设置。
 """
-import os
-import sys
+# ==================== 导入模块 ====================
+import os          # 读取环境变量、拼接路径
+import sys         # 读取启动参数(用于判断是否在跑测试)
 from pathlib import Path
 
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext_lazy as _  # 国际化翻译函数(标记待翻译文本)
 
 
+# ---------------------------------------------------------------
+# 工具函数:读取环境变量并转换为布尔值
+#   env     : 环境变量名
+#   default : 环境变量不存在时返回的默认值
+# 作用:让 DEBUG、邮件加密方式等开关可以在"不改代码"的前提下,
+#       通过环境变量在开发环境/生产环境之间切换
+# ---------------------------------------------------------------
 def env_to_bool(env, default):
     str_val = os.environ.get(env)
     return default if str_val is None else str_val == 'True'
 
 
+# ==================== 基础路径与安全配置 ====================
+# BASE_DIR:项目根目录(本文件位于 djangoblog/ 包内,取上一级即项目根)
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
+# SECRET_KEY:全局密钥,用于 session、CSRF 防护、密码重置链接等所有加密签名
+# ⚠ 安全提示:生产环境务必通过环境变量 DJANGO_SECRET_KEY 注入,不要把真实密钥提交到仓库!
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get(
     'DJANGO_SECRET_KEY') or 'n9ceqv38)#&mwuat@(mjb_p%em$e8$qyr#fw9ot!=ba6lijx-6'
+# DEBUG:调试模式开关。开发时 True(报错时显示详细调试页面,方便定位问题)
+# ⚠ 安全提示:上线必须改为 False,否则会向访客泄露源码、配置和 SQL
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env_to_bool('DJANGO_DEBUG', True)
 # DEBUG = False
+# TESTING:判断当前是否正在跑单元测试(命令为 manage.py test)
+# 原理:启动参数第 2 个是 "test" 就视为测试环境,供其他代码区分场景用
 TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 
+# ALLOWED_HOSTS:允许的域名列表(校验请求头中的 Host,防 HTTP 头注入攻击)
+# '*' 表示允许所有域名——开发图方便;生产环境应只保留自己的域名
 # ALLOWED_HOSTS = []
 ALLOWED_HOSTS = ['*', '127.0.0.1', 'example.com']
-# django 4.0新增配置
+# CSRF_TRUSTED_ORIGINS:Django 4.0 新增配置,信任的跨站 POST 来源(必须带协议头)
+# 来自这些地址的表单提交不会被 CSRF 拦截
 CSRF_TRUSTED_ORIGINS = ['http://example.com']
 # Application definition
 
 
+# ==================== 应用注册 ====================
+# Django 启动时会加载这里列出的所有应用,分三类:
+#   1. Django 内置应用(admin 后台、auth 认证、sessions 会话等)
+#   2. 第三方应用(mdeditor 编辑器、haystack 搜索、compressor 压缩)
+#   3. 本项目自行开发的应用(blog、accounts、comments 等)
 INSTALLED_APPS = [
-    # 'django.contrib.admin',
-    'django.contrib.admin.apps.SimpleAdminConfig',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.sites',
-    'django.contrib.sitemaps',
-    'mdeditor',
-    'haystack',
-    'blog',
-    'accounts',
-    'comments',
-    'oauth',
-    'servermanager',
-    'compressor',
-    'djangoblog'
+    # 'django.contrib.admin',                            # 内置后台完整版(已用下一行的轻量版替代)
+    'django.contrib.admin.apps.SimpleAdminConfig',        # 后台管理:轻量配置版,不自动扫描 admin 模块,启动更快
+    'django.contrib.auth',                                # 用户认证系统(登录、权限、密码管理)
+    'django.contrib.contenttypes',                        # 模型类型登记表,权限系统依赖它
+    'django.contrib.sessions',                            # 会话支持(维持用户登录状态)
+    'django.contrib.messages',                            # 一次性提示消息(如"保存成功")
+    'django.contrib.staticfiles',                         # 静态文件收集与管理框架
+    'django.contrib.sites',                               # 多站点支持(配合 SITE_ID 区分站点)
+    'django.contrib.sitemaps',                            # 自动生成 sitemap.xml,利于搜索引擎收录
+    'mdeditor',                                           # 第三方:Markdown 编辑器(写文章用)
+    'haystack',                                           # 第三方:全文搜索框架(统一对接 Whoosh/ES)
+    'blog',                                               # 本项目:博客文章模块
+    'accounts',                                           # 本项目:用户模块(注册/登录/个人中心)
+    'comments',                                           # 本项目:评论模块
+    'oauth',                                              # 本项目:第三方账号登录(微信/QQ/GitHub 等)
+    'servermanager',                                      # 本项目:服务器管理模块
+    'compressor',                                         # 第三方:CSS/JS 压缩合并
+    'djangoblog'                                          # 本项目:主应用(放全局工具代码)
 ]
 
+# ==================== 中间件 ====================
+# 请求进入时按"从上到下"顺序穿过每个中间件,响应返回时再反向走一遍,
+# 因此中间件的顺序直接影响行为(安全类在最前,业务统计在最后)。
 MIDDLEWARE = [
 
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',
-    'django.middleware.gzip.GZipMiddleware',
-    # 'django.middleware.cache.UpdateCacheMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    # 'django.middleware.cache.FetchFromCacheMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.http.ConditionalGetMiddleware',
-    'blog.middleware.OnlineMiddleware'
+    'django.middleware.security.SecurityMiddleware',               # 安全处理(如 HTTP→HTTPS 重定向)
+    'django.contrib.sessions.middleware.SessionMiddleware',        # 会话中间件:读取/写入用户 session
+    'django.middleware.locale.LocaleMiddleware',                   # 国际化:按用户偏好自动切换界面语言
+    'django.middleware.gzip.GZipMiddleware',                       # 对响应做 gzip 压缩,减小传输体积
+    # 'django.middleware.cache.UpdateCacheMiddleware',             # 全站缓存(更新阶段,已停用)
+    'django.middleware.common.CommonMiddleware',                   # 通用处理(URL 末尾斜杠补全等)
+    # 'django.middleware.cache.FetchFromCacheMiddleware',          # 全站缓存(取回阶段,已停用)
+    'django.middleware.csrf.CsrfViewMiddleware',                   # CSRF 跨站请求伪造防护
+    'django.contrib.auth.middleware.AuthenticationMiddleware',     # 认证:把 session 关联成 request.user
+    'django.contrib.messages.middleware.MessageMiddleware',        # 消息中间件:支持一次性提示
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',      # 防点击劫持(限制被外站 iframe 嵌套)
+    'django.middleware.http.ConditionalGetMiddleware',             # 支持 ETag/304,节省带宽
+    'blog.middleware.OnlineMiddleware'                             # 自定义中间件:统计在线用户数
 ]
 
+# ROOT_URLCONF:项目总路由文件(djangoblog/urls.py),所有 URL 从这里开始分发
 ROOT_URLCONF = 'djangoblog.urls'
 
+# ==================== 模板配置 ====================
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
-        'APP_DIRS': True,
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',   # 模板引擎(Django 自带)
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],                  # 全局模板目录:项目根下 templates/
+        'APP_DIRS': True,                                               # 同时自动搜索各 app 内的 templates/ 目录
         'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'blog.context_processors.seo_processor'
+            'context_processors': [                                     # 上下文处理器:渲染任何模板时自动注入的变量
+                'django.template.context_processors.debug',             #   注入 debug 标记、sql_queries
+                'django.template.context_processors.request',           #   注入当前请求对象 request
+                'django.contrib.auth.context_processors.auth',          #   注入当前用户 user 及权限 perms
+                'django.contrib.messages.context_processors.messages',  #   注入一次性消息 messages
+                'blog.context_processors.seo_processor'                 #   自定义:注入 SEO 信息(站点标题/关键词等)
             ],
         },
     },
 ]
 
+# WSGI_APPLICATION:WSGI 应用入口(部署到 gunicorn/uwsgi 时加载的就是它)
 WSGI_APPLICATION = 'djangoblog.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
 
+# ==================== 数据库配置(MySQL) ====================
+# 连接本机 MySQL 的 djangoblog 库,端口 3306
+# ⚠ 安全提示:密码明文写在代码里只适合本机开发,正式部署建议改为:
+#   'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD')
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'djangoblog',
-        'USER': 'root',
-        'PASSWORD': '513412',
-        'HOST': '127.0.0.1',
-        'PORT': 3306,
+        'ENGINE': 'django.db.backends.mysql',   # 数据库引擎:MySQL
+        'NAME': 'djangoblog',                   # 数据库名
+        'USER': 'root',                         # 数据库用户名
+        'PASSWORD': '513412',                   # 数据库密码(仅限开发环境)
+        'HOST': '127.0.0.1',                    # 数据库地址:本机
+        'PORT': 3306,                           # MySQL 默认端口
     }
 }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
 
+# ==================== 密码强度校验器 ====================
+# 用户注册/修改密码时,依次用下面 4 条规则检查密码强度
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',  # 不能与用户名/邮箱过于相似
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',            # 不能太短(默认至少 8 位)
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',           # 不能是常见弱密码(内置弱口令库)
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',          # 不能是纯数字
     },
 ]
 
+# ==================== 国际化 / 时区 ====================
+# 项目支持的界面语言:英语、简体中文、繁体中文
 LANGUAGES = (
     ('en', _('English')),
     ('zh-hans', _('Simplified Chinese')),
     ('zh-hant', _('Traditional Chinese')),
 )
+# 翻译文件(.po/.mo)的存放目录
 LOCALE_PATHS = (
     os.path.join(BASE_DIR, 'locale'),
 )
 
-LANGUAGE_CODE = 'zh-hans'
+LANGUAGE_CODE = 'zh-hans'      # 界面默认语言:简体中文
 
-TIME_ZONE = 'Asia/Shanghai'
+TIME_ZONE = 'Asia/Shanghai'    # 时区:中国标准时间
 
-USE_I18N = True
+USE_I18N = True                # 开启国际化(翻译生效)
+USE_L10N = True                # 开启本地化格式(日期、数字按地区格式显示)
+USE_TZ = False                 # 不使用 UTC:数据库直接存北京时间(注意:换时区服务器部署时需留意)
 
-USE_L10N = True
 
-USE_TZ = False
-
-# Session settings
-SESSION_COOKIE_AGE = 1209600  # 2周（Django默认值）
-REMEMBER_ME_LOGIN_TTL = 2626560  # 30天（勾选"记住我"时使用）
+# ==================== 会话(Session)设置 ====================
+SESSION_COOKIE_AGE = 1209600  # 会话 Cookie 有效期:1209600 秒 = 2 周(Django 默认值)
+REMEMBER_ME_LOGIN_TTL = 2626560  # 登录页勾选"记住我"后的有效期:30 天(本项目自定义配置)
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
@@ -206,13 +248,13 @@ REMEMBER_ME_LOGIN_TTL = 2626560  # 30天（勾选"记住我"时使用）
 #   - ELASTICSEARCH_CLIENT_KEY: 客户端私钥路径
 
 if os.environ.get('DJANGO_ELASTICSEARCH_HOST'):
-    # 通过环境变量配置 Elasticsearch（生产环境）
+    # 通过环境变量配置 Elasticsearch（生产环境）：设置了该变量就自动拼出完整 ES 连接配置
     _es_config = {
-        'hosts': os.environ.get('DJANGO_ELASTICSEARCH_HOST'),
-        'verify_certs': os.environ.get('ELASTICSEARCH_VERIFY_CERTS', 'False').lower() == 'true',
+        'hosts': os.environ.get('DJANGO_ELASTICSEARCH_HOST'),       # ES 主机地址(必需)
+        'verify_certs': os.environ.get('ELASTICSEARCH_VERIFY_CERTS', 'False').lower() == 'true',  # 是否验证SSL证书
     }
 
-    # 用户名密码认证
+    # 用户名密码认证(ES 8.x 默认方式,推荐)
     if os.environ.get('ELASTICSEARCH_USERNAME') and os.environ.get('ELASTICSEARCH_PASSWORD'):
         _es_config['username'] = os.environ.get('ELASTICSEARCH_USERNAME')
         _es_config['password'] = os.environ.get('ELASTICSEARCH_PASSWORD')
@@ -221,75 +263,81 @@ if os.environ.get('DJANGO_ELASTICSEARCH_HOST'):
     if os.environ.get('ELASTICSEARCH_API_KEY'):
         _es_config['api_key'] = os.environ.get('ELASTICSEARCH_API_KEY')
 
-    # 证书认证
+    # 证书认证(CA 根证书)
     if os.environ.get('ELASTICSEARCH_CA_CERTS'):
         _es_config['ca_certs'] = os.environ.get('ELASTICSEARCH_CA_CERTS')
+    # 证书认证(双向认证:客户端证书+私钥)
     if os.environ.get('ELASTICSEARCH_CLIENT_CERT') and os.environ.get('ELASTICSEARCH_CLIENT_KEY'):
         _es_config['client_cert'] = os.environ.get('ELASTICSEARCH_CLIENT_CERT')
         _es_config['client_key'] = os.environ.get('ELASTICSEARCH_CLIENT_KEY')
 
-    ELASTICSEARCH_DSL = {'default': _es_config}
+    ELASTICSEARCH_DSL = {'default': _es_config}   # 只有环境变量齐全时才定义,供下方 Haystack 选择后端用
 
-# === Haystack 配置 ===
+# === Haystack 搜索后端选择 ===
+# haystack 是统一的搜索入口,真正执行搜索的后端在这里二选一:
 if 'ELASTICSEARCH_DSL' in locals():
-    # 使用 Elasticsearch
+    # 使用 Elasticsearch:功能强,适合大流量站点(需要单独部署 ES 服务)
     HAYSTACK_CONNECTIONS = {
         'default': {
             'ENGINE': 'djangoblog.elasticsearch_backend.ElasticSearchEngine',
         }
     }
 else:
-    # 默认使用 Whoosh
+    # 默认使用 Whoosh:纯 Python 实现,免装服务,适合开发环境和小站点
     HAYSTACK_CONNECTIONS = {
         'default': {
-            'ENGINE': 'djangoblog.whoosh_cn_backend.WhooshEngine',
-            'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
+            'ENGINE': 'djangoblog.whoosh_cn_backend.WhooshEngine',   # 支持中文分词的 Whoosh 引擎
+            'PATH': os.path.join(BASE_DIR, 'whoosh_index'),          # 搜索索引文件存放目录
         },
     }
 
 # Automatically update searching index
+# 文章新增/修改/删除时,自动实时更新搜索索引
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 # Allow user login with username and password
+# 自定义认证后端:允许用"用户名 或 邮箱"登录(实现见 accounts/user_login_backend.py)
 AUTHENTICATION_BACKENDS = [
     'accounts.user_login_backend.EmailOrUsernameModelBackend']
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'collectedstatic')
+# ==================== 静态文件配置 ====================
+STATIC_ROOT = os.path.join(BASE_DIR, 'collectedstatic')  # 执行 collectstatic 时所有静态文件的汇总目录(部署用)
 
-STATIC_URL = '/static/'
-STATICFILES = os.path.join(BASE_DIR, 'static')
+STATIC_URL = '/static/'                                  # 静态文件访问的 URL 前缀
+STATICFILES = os.path.join(BASE_DIR, 'static')           # 自定义变量:仅作记录(Django 实际使用的是下面的 STATICFILES_DIRS)
 
 # 添加插件静态文件目录
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'plugins'),  # 让Django能找到插件的静态文件
 ]
 
-# Vite开发服务器URL（开发模式）
+# Vite开发服务器URL(开发模式):前端资源在开发时由 Vite(端口5173)实时提供
 VITE_DEV_SERVER_URL = 'http://localhost:5173'
 
-AUTH_USER_MODEL = 'accounts.BlogUser'
-LOGIN_URL = '/login/'
+# ==================== 用户认证相关 ====================
+AUTH_USER_MODEL = 'accounts.BlogUser'  # 使用自定义用户模型 BlogUser(扩展了昵称等字段),替代 Django 内置 User
+LOGIN_URL = '/login/'                  # 未登录用户访问受保护页面时,重定向到这个登录地址
 
-TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
-DATE_TIME_FORMAT = '%Y-%m-%d'
+TIME_FORMAT = '%Y-%m-%d %H:%M:%S'      # 全站统一时间显示格式
+DATE_TIME_FORMAT = '%Y-%m-%d'          # 全站统一日期显示格式
 
-# bootstrap color styles
+# bootstrap color styles:页面标签可用的 Bootstrap 配色(用于文章分类标签等)
 BOOTSTRAP_COLOR_TYPES = [
     'default', 'primary', 'success', 'info', 'warning', 'danger'
 ]
 
-# paginate
-PAGINATE_BY = 10
-# http cache timeout
+# paginate:分页配置
+PAGINATE_BY = 10                       # 列表页每页显示 10 篇文章
+# http cache timeout:浏览器端强缓存时长 2592000 秒 = 30 天
 CACHE_CONTROL_MAX_AGE = 2592000
-# cache setting
+# cache setting:服务端缓存(默认本地内存,单进程;生产建议 Redis)
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'TIMEOUT': 10800,
-        'LOCATION': 'unique-snowflake',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',  # 本地内存缓存
+        'TIMEOUT': 10800,                 # 缓存默认过期时间:10800 秒 = 3 小时
+        'LOCATION': 'unique-snowflake',   # 缓存区域名(多个缓存时用于区分)
     }
 }
-# 使用redis作为缓存
+# 使用redis作为缓存:设置了 DJANGO_REDIS_URL 环境变量时,自动切换到 Redis(生产环境推荐)
 if os.environ.get("DJANGO_REDIS_URL"):
     CACHES = {
         'default': {
@@ -298,105 +346,114 @@ if os.environ.get("DJANGO_REDIS_URL"):
         }
     }
 
-SITE_ID = 1
+SITE_ID = 1                      # django.contrib.sites 站点框架:当前使用站点表中 ID=1 的站点
 BAIDU_NOTIFY_URL = os.environ.get('DJANGO_BAIDU_NOTIFY_URL') \
                    or 'http://data.zz.baidu.com/urls?site=https://www.lylinux.net&token=1uAOGrMsUm5syDGn'
+                                 # 百度站长平台"链接主动推送"接口:发新文章时通知百度收录(SEO 优化)
 
 # Email:
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_USE_TLS = env_to_bool('DJANGO_EMAIL_TLS', False)
-EMAIL_USE_SSL = env_to_bool('DJANGO_EMAIL_SSL', True)
-EMAIL_HOST = os.environ.get('DJANGO_EMAIL_HOST') or 'smtp.mxhichina.com'
-EMAIL_PORT = int(os.environ.get('DJANGO_EMAIL_PORT') or 465)
-EMAIL_HOST_USER = os.environ.get('DJANGO_EMAIL_USER')
-EMAIL_HOST_PASSWORD = os.environ.get('DJANGO_EMAIL_PASSWORD')
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-SERVER_EMAIL = EMAIL_HOST_USER
+# ==================== 邮件配置(SMTP 发信) ====================
+# 用于发送注册验证邮件、评论通知、错误报警等
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # 使用真实 SMTP 发送(开发可换成 console 后端)
+EMAIL_USE_TLS = env_to_bool('DJANGO_EMAIL_TLS', False)   # 是否使用 TLS 加密(587 端口常用)
+EMAIL_USE_SSL = env_to_bool('DJANGO_EMAIL_SSL', True)    # 是否使用 SSL 加密(465 端口常用,默认开)
+EMAIL_HOST = os.environ.get('DJANGO_EMAIL_HOST') or 'smtp.mxhichina.com'  # SMTP 服务器(默认阿里云企业邮箱)
+EMAIL_PORT = int(os.environ.get('DJANGO_EMAIL_PORT') or 465)              # SMTP 端口:465(SSL)
+EMAIL_HOST_USER = os.environ.get('DJANGO_EMAIL_USER')               # 发件邮箱账号(从环境变量读取)
+EMAIL_HOST_PASSWORD = os.environ.get('DJANGO_EMAIL_PASSWORD')       # 发件邮箱密码/授权码(从环境变量读取)
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER   # 默认发件人
+SERVER_EMAIL = EMAIL_HOST_USER         # 系统邮件(如错误报告)的发件人
 # Setting debug=false did NOT handle except email notifications
-ADMINS = [('admin', os.environ.get('DJANGO_ADMIN_EMAIL') or 'admin@admin.com')]
-# WX ADMIN password(Two times md5)
+ADMINS = [('admin', os.environ.get('DJANGO_ADMIN_EMAIL') or 'admin@admin.com')]  # DEBUG=False 时出错发报警邮件给谁
+# WX ADMIN password(Two times md5):微信公众号后台管理密码(两次 MD5 加密存储)
 WXADMIN = os.environ.get(
     'DJANGO_WXADMIN_PASSWORD') or '995F03AC401D6CABABAEF756FC4D43C7'
 
-LOG_PATH = os.path.join(BASE_DIR, 'logs')
+
+# ==================== 日志配置 ====================
+# 日志三大要素:formatter(格式)→ handler(输出到哪里)→ logger(谁来用哪个 handler)
+LOG_PATH = os.path.join(BASE_DIR, 'logs')            # 日志目录:项目根下 logs/
 if not os.path.exists(LOG_PATH):
-    os.makedirs(LOG_PATH, exist_ok=True)
+    os.makedirs(LOG_PATH, exist_ok=True)             # 目录不存在则自动创建
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'root': {
+    'version': 1,                              # 固定写法:dictConfig 配置格式版本
+    'disable_existing_loggers': False,         # 不禁用其他地方已定义的 logger
+    'root': {                                  # 根 logger:记录 INFO 及以上级别的日志
         'level': 'INFO',
-        'handlers': ['console', 'log_file'],
+        'handlers': ['console', 'log_file'],   # 同时输出到控制台和文件
     },
-    'formatters': {
+    'formatters': {                            # 日志格式定义
         'verbose': {
+            # 详细格式:[时间] 级别 [模块.函数名:行号 文件名] 消息内容
             'format': '[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d %(module)s] %(message)s',
         }
     },
-    'filters': {
+    'filters': {                               # 过滤器:控制某条日志"在什么条件下生效"
         'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse',
+            '()': 'django.utils.log.RequireDebugFalse',   # 仅 DEBUG=False 时通过
         },
         'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue',
+            '()': 'django.utils.log.RequireDebugTrue',    # 仅 DEBUG=True 时通过
         },
     },
-    'handlers': {
+    'handlers': {                              # 处理器:日志的输出目的地
         'log_file': {
             'level': 'INFO',
-            'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(LOG_PATH, 'djangoblog.log'),
-            'when': 'D',
+            'class': 'logging.handlers.TimedRotatingFileHandler',  # 按时间滚动的文件日志
+            'filename': os.path.join(LOG_PATH, 'djangoblog.log'),  # 日志文件路径
+            'when': 'D',                       # 每天切割一个新文件
             'formatter': 'verbose',
-            'interval': 1,
-            'delay': True,
-            'backupCount': 5,
-            'encoding': 'utf-8'
+            'interval': 1,                     # 切割间隔:1 天
+            'delay': True,                     # 首条日志写入时才真正创建文件
+            'backupCount': 5,                  # 最多保留 5 个历史日志文件,更早的自动删除
+            'encoding': 'utf-8'                # 文件编码,保证中文不乱码
         },
         'console': {
             'level': 'DEBUG',
-            'filters': ['require_debug_true'],
+            'filters': ['require_debug_true'],  # 只在 DEBUG 模式下才输出到控制台
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
         'null': {
-            'class': 'logging.NullHandler',
+            'class': 'logging.NullHandler',    # 空处理器:丢弃日志(备用)
         },
         'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
+            'level': 'ERROR',                  # ERROR 及以上级别
+            'filters': ['require_debug_false'],  # 且生产环境(DEBUG=False)才触发
+            'class': 'django.utils.log.AdminEmailHandler'  # 自动给 ADMINS 发报警邮件
         }
     },
     'loggers': {
-        'djangoblog': {
+        'djangoblog': {                        # 本项目专用 logger(代码里 logging.getLogger('djangoblog'))
             'handlers': ['log_file', 'console'],
             'level': 'INFO',
-            'propagate': True,
+            'propagate': True,                 # 同时向根 logger 传递(避免重复记录可设 False)
         }
     }
 }
 
+# ==================== 静态文件查找器 ====================
+# Django 按顺序用这些查找器定位静态文件
 STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'django.contrib.staticfiles.finders.FileSystemFinder',      # 1. 在 STATICFILES_DIRS 声明的目录里找
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',  # 2. 在各 app 的 static/ 子目录里找
     # other
-    'compressor.finders.CompressorFinder',
+    'compressor.finders.CompressorFinder',                      # 3. 在 compressor 压缩输出目录里找
 )
-# 开发模式下禁用压缩，使用Vite处理静态资源
+# 开发模式下禁用压缩,使用Vite处理静态资源(生产环境 DEBUG=False 时才真正压缩)
 COMPRESS_ENABLED = not DEBUG
-# 根据环境变量决定是否启用离线压缩
+# 根据环境变量决定是否启用离线压缩(部署时预先压缩好,访问更快)
 COMPRESS_OFFLINE = os.environ.get('COMPRESS_OFFLINE', 'False').lower() == 'true'
 
 # 压缩输出目录
 COMPRESS_OUTPUT_DIR = 'compressed'
 
-# 压缩文件名模板 - 包含哈希值用于缓存破坏
+# 压缩文件名模板 - 包含哈希值用于缓存破坏(文件变了哈希就变,浏览器缓存自动失效)
 COMPRESS_CSS_HASHING_METHOD = 'mtime'
 COMPRESS_JS_HASHING_METHOD = 'mtime'
 
-# 高级CSS压缩过滤器
+# 高级CSS压缩过滤器(处理流水线:先转绝对URL,再压缩)
 COMPRESS_CSS_FILTERS = [
     # 创建绝对URL
     'compressor.filters.css_default.CssAbsoluteFilter',
@@ -414,7 +471,7 @@ COMPRESS_JS_FILTERS = [
 COMPRESS_CACHE_BACKEND = 'default'
 COMPRESS_CACHE_KEY_FUNCTION = 'compressor.cache.simple_cachekey'
 
-# 预压缩配置
+# 预压缩配置:模板里出现的 SCSS/SASS 先编译成 CSS 再压缩
 COMPRESS_PRECOMPILERS = (
     # 支持SCSS/SASS
     ('text/x-scss', 'django_libsass.SassCompiler'),
@@ -422,39 +479,42 @@ COMPRESS_PRECOMPILERS = (
 )
 
 # 压缩性能优化
-COMPRESS_MINT_DELAY = 30  # 压缩延迟（秒）
-COMPRESS_MTIME_DELAY = 10  # 修改时间检查延迟
-COMPRESS_REBUILD_TIMEOUT = 2592000  # 重建超时（30天）
+COMPRESS_MINT_DELAY = 30  # 压缩延迟(秒):30 秒内不重复检查是否需要压缩
+COMPRESS_MTIME_DELAY = 10  # 修改时间检查延迟(秒):10 秒内缓存文件的修改时间
+COMPRESS_REBUILD_TIMEOUT = 2592000  # 重建超时(30天):压缩缓存过期时间
 
 # 压缩等级配置
 COMPRESS_CSS_COMPRESSOR = 'compressor.css.CssCompressor'
 COMPRESS_JS_COMPRESSOR = 'compressor.js.JsCompressor'
 
-# 静态文件缓存配置
+# 静态文件缓存配置:发布时给静态文件名加哈希指纹(如 style.9f2a1.css)
+# 内容一变文件名就变,可以放心让浏览器长期缓存,又保证更新即时生效
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
-# 浏览器缓存配置（通过中间件或服务器配置）
-COMPRESS_URL = STATIC_URL
-COMPRESS_ROOT = STATIC_ROOT
+# 浏览器缓存配置(通过中间件或服务器配置)
+COMPRESS_URL = STATIC_URL    # 压缩后文件的访问前缀,与 STATIC_URL 保持一致
+COMPRESS_ROOT = STATIC_ROOT  # 压缩输出的根目录,与收集目录一致
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
-MEDIA_URL = '/media/'
-X_FRAME_OPTIONS = 'SAMEORIGIN'
+# ==================== 媒体文件(用户上传) ====================
+MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')  # 用户上传文件的保存目录:项目根下 uploads/
+MEDIA_URL = '/media/'                           # 上传文件的访问 URL 前缀
+X_FRAME_OPTIONS = 'SAMEORIGIN'                  # 本站页面只允许同源网站 iframe 嵌套(防点击劫持)
 
 
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'  # 新建模型主键默认使用 64 位自增整数(Django 3.2+ 要求)
 
-# Plugin System
-PLUGINS_DIR = BASE_DIR / 'plugins'
-ACTIVE_PLUGINS = [
-    'article_copyright',
-    'reading_time',
-    'external_links',
-    'view_count',
-    'seo_optimizer',
-    'image_lazy_loading',
-    'article_recommendation',
+# ==================== 插件系统(自定义) ====================
+# 项目实现了一套轻量插件机制:每个插件是 plugins/ 目录下的一个独立包,
+# 把插件名加进 ACTIVE_PLUGINS 即可启用,方便功能解耦和团队分工。
+PLUGINS_DIR = BASE_DIR / 'plugins'   # 插件代码所在目录
+ACTIVE_PLUGINS = [                   # 当前启用的插件列表(顺序即加载顺序)
+    'article_copyright',             # 文章版权声明
+    'reading_time',                  # 阅读时长估算
+    'external_links',                # 外链处理(如加 nofollow)
+    'view_count',                    # 文章浏览量统计
+    'seo_optimizer',                 # SEO 优化
+    'image_lazy_loading',            # 图片懒加载
+    'article_recommendation',        # 相关文章推荐
     'cloudflare_cache',  # Cloudflare缓存管理插件
 ]
-
