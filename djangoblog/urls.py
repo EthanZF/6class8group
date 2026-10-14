@@ -32,10 +32,10 @@ from haystack.views import search_view_factory    # haystack 搜索视图工厂(
 from django.http import JsonResponse        # 直接返回 JSON 数据的响应类
 import time                                 # 取时间戳(健康检查接口用)
 
-from blog.views import EsSearchView                                          # 全文搜索视图(对接 Elasticsearch)
-from djangoblog.admin_site import admin_site                                 # 自定义的后台管理站点(非 Django 默认 admin)
-from djangoblog.elasticsearch_backend import ElasticSearchModelSearchForm    # ES 搜索表单(定义搜哪些字段)
-from djangoblog.feeds import DjangoBlogFeed                                  # RSS 订阅源(文章 feed 流)
+from blog.views import EsSearchView                                          # zfh-全文搜索视图(对接 Elasticsearch)
+from djangoblog.admin_site import admin_site                                 # zfh-自定义的后台管理站点(非 Django 默认 admin)
+from djangoblog.elasticsearch_backend import ElasticSearchModelSearchForm    #zfh- ES 搜索表单(定义搜哪些字段)
+from djangoblog.feeds import DjangoBlogFeed                                  # zfh-RSS 订阅源(文章 feed 流)
 from djangoblog.sitemap import ArticleSiteMap, CategorySiteMap, StaticViewSitemap, TagSiteMap, UserSiteMap
                               # ↑ 五种站点地图:文章/分类/静态页/标签/用户,各自定义"哪些网址要被收录"
 
@@ -43,11 +43,11 @@ from djangoblog.sitemap import ArticleSiteMap, CategorySiteMap, StaticViewSitema
 # sitemap.xml 会按下面 5 个分区罗列全站可被搜索引擎收录的网址
 sitemaps = {
 
-    'blog': ArticleSiteMap,          # 所有文章的网址
-    'Category': CategorySiteMap,     # 所有分类的网址
-    'Tag': TagSiteMap,               # 所有标签的网址
-    'User': UserSiteMap,             # 所有用户的网址
-    'static': StaticViewSitemap      # 关于我们等静态页面的网址
+    'blog': ArticleSiteMap,          # zfh-所有文章的网址
+    'Category': CategorySiteMap,     # zfh-所有分类的网址
+    'Tag': TagSiteMap,               # zfh-所有标签的网址
+    'User': UserSiteMap,             # zfh-所有用户的网址
+    'static': StaticViewSitemap      #zfh- 关于我们等静态页面的网址
 }
 
 # ==================== 自定义错误页 ====================

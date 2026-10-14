@@ -72,23 +72,23 @@ CSRF_TRUSTED_ORIGINS = ['http://example.com']
 #   3. 本项目自行开发的应用(blog、accounts、comments 等)
 INSTALLED_APPS = [
     # 'django.contrib.admin',                            # 内置后台完整版(已用下一行的轻量版替代)
-    'django.contrib.admin.apps.SimpleAdminConfig',        # 后台管理:轻量配置版,不自动扫描 admin 模块,启动更快
-    'django.contrib.auth',                                # 用户认证系统(登录、权限、密码管理)
-    'django.contrib.contenttypes',                        # 模型类型登记表,权限系统依赖它
-    'django.contrib.sessions',                            # 会话支持(维持用户登录状态)
-    'django.contrib.messages',                            # 一次性提示消息(如"保存成功")
-    'django.contrib.staticfiles',                         # 静态文件收集与管理框架
-    'django.contrib.sites',                               # 多站点支持(配合 SITE_ID 区分站点)
-    'django.contrib.sitemaps',                            # 自动生成 sitemap.xml,利于搜索引擎收录
-    'mdeditor',                                           # 第三方:Markdown 编辑器(写文章用)
-    'haystack',                                           # 第三方:全文搜索框架(统一对接 Whoosh/ES)
-    'blog',                                               # 本项目:博客文章模块
-    'accounts',                                           # 本项目:用户模块(注册/登录/个人中心)
-    'comments',                                           # 本项目:评论模块
-    'oauth',                                              # 本项目:第三方账号登录(微信/QQ/GitHub 等)
-    'servermanager',                                      # 本项目:服务器管理模块
-    'compressor',                                         # 第三方:CSS/JS 压缩合并
-    'djangoblog'                                          # 本项目:主应用(放全局工具代码)
+    'django.contrib.admin.apps.SimpleAdminConfig',        #zfh- 后台管理:轻量配置版,不自动扫描 admin 模块,启动更快
+    'django.contrib.auth',                                # zfh-用户认证系统(登录、权限、密码管理)
+    'django.contrib.contenttypes',                        #zfh- 模型类型登记表,权限系统依赖它
+    'django.contrib.sessions',                            # zfh-会话支持(维持用户登录状态)
+    'django.contrib.messages',                            # zfh-一次性提示消息(如"保存成功")
+    'django.contrib.staticfiles',                         #zfh- 静态文件收集与管理框架
+    'django.contrib.sites',                               # zfh-多站点支持(配合 SITE_ID 区分站点)
+    'django.contrib.sitemaps',                            #zfh- 自动生成 sitemap.xml,利于搜索引擎收录
+    'mdeditor',                                           # zfh-第三方:Markdown 编辑器(写文章用)
+    'haystack',                                           # zfh-第三方:全文搜索框架(统一对接 Whoosh/ES)
+    'blog',                                               # zfh-本项目:博客文章模块
+    'accounts',                                           # zfh-本项目:用户模块(注册/登录/个人中心)
+    'comments',                                           # zfh-本项目:评论模块
+    'oauth',                                              # zfh-本项目:第三方账号登录(微信/QQ/GitHub 等)
+    'servermanager',                                      # zfh-本项目:服务器管理模块
+    'compressor',                                         #zfh- 第三方:CSS/JS 压缩合并
+    'djangoblog'                                          # zfh-本项目:主应用(放全局工具代码)
 ]
 
 # ==================== 中间件 ====================
