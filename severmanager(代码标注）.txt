@@ -1,0 +1,54 @@
+```python
+# 导入Django的数据库模型模块，models中封装了各类数据库字段类型
+from django.db import models
+
+# Create your models here.
+# 命令表模型：用于存储执行的命令相关数据，Django会根据该类自动生成数据库表
+class commands(models.Model):
+    # 命令标题，字符串类型，最大长度300，admin后台显示别名“命令标题”
+    title = models.CharField('命令标题', max_length=300)
+    # 具体执行的命令内容，字符串类型，最大长度2000
+    command = models.CharField('命令', max_length=2000)
+    # 对这条命令的文字描述说明，字符串，最大长度300
+    describe = models.CharField('命令描述', max_length=300)
+    # 创建时间：auto_now_add=True 记录对象第一次创建时的时间，后续修改不会自动更新
+    creation_time = models.DateTimeField('创建时间', auto_now_add=True)
+    # 修改时间：auto_now=True 对象每次保存更新时，自动更新为当前时间
+    last_modify_time = models.DateTimeField('修改时间', auto_now=True)
+
+    def __str__(self):
+        """
+        字符串魔术方法，在Django后台admin界面，该对象展示的文本，返回title字段内容
+        如果不重写，后台会显示对象内存标识，可读性差
+        """
+        return self.title
+
+    class Meta:
+        """元数据类，配置模型的附加信息，不生成数据库字段"""
+        verbose_name = '命令'          # admin后台单数显示名称
+        verbose_name_plural = verbose_name # admin后台复数名称，设置和单数一致，避免自动加s
+
+# 邮件发送日志模型，记录每一次邮件发送的记录
+class EmailSendLog(models.Model):
+    # 邮件收件人，字符串，最大300字符，可以保存多个收件人地址
+    emailto = models.CharField('收件人', max_length=300)
+    # 邮件主题/标题，字符串最大2000
+    title = models.CharField('邮件标题', max_length=2000)
+    # 邮件正文内容，TextField大文本，无固定长度限制，适合存长文本
+    content = models.TextField('邮件内容')
+    # 发送结果，布尔值，False代表发送失败，True发送成功；默认值False
+    send_result = models.BooleanField('结果', default=False)
+    # 日志创建时间，邮件记录生成时自动填充当前时间
+    creation_time = models.DateTimeField('创建时间', auto_now_add=True)
+
+    def __str__(self):
+        # admin后台展示这条邮件日志的显示文本，返回邮件标题
+        return self.title
+
+    class Meta:
+        verbose_name = '邮件发送log'        # admin后台单数名称
+        verbose_name_plural = verbose_name  # 复数名称与单数保持一致
+        ordering = ['-creation_time']       # 查询数据默认排序规则：按创建时间倒序，最新的日志排在最前面
+
+```
+
