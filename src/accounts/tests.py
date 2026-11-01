@@ -1,3 +1,8 @@
+"""
+CTY所注：accounts 应用功能测试模块
+模块功能：对账户认证功能做端到端测试，覆盖后台登录、注册、邮箱验证码发送与校验、
+忘记密码重置等完整流程的正确性验证。
+"""
 # CTY所注：导入 Django 测试工具（模拟客户端、请求工厂、测试用例基类）
 from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse

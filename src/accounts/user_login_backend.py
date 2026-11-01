@@ -1,3 +1,9 @@
+"""
+CTY所注：accounts 应用认证后端模块
+模块功能：自定义 Django 认证后端 EmailOrUsernameModelBackend，在默认
+ModelBackend 基础上扩展为支持"用户名"或"邮箱"两种方式登录，
+并在 settings 的 AUTHENTICATION_BACKENDS 中启用。
+"""
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 
@@ -9,6 +15,11 @@ class EmailOrUsernameModelBackend(ModelBackend):
     """
 
     def authenticate(self, request, username=None, password=None, **kwargs):
+        """
+        CTY所注：认证用户身份
+        输入内容中包含 @ 则按邮箱查询用户，否则按用户名查询；
+        密码正确返回用户对象，否则返回 None
+        """
         # CTY所注：输入内容中包含 @ 则按邮箱查询用户，否则按用户名查询
         if '@' in username:
             kwargs = {'email': username}
@@ -24,7 +35,7 @@ class EmailOrUsernameModelBackend(ModelBackend):
             return None
 
     def get_user(self, username):
-        # CTY所注：根据主键（用户id）获取用户，供 Django 从 session 恢复登录状态时使用
+        """CTY所注：根据主键（用户id）获取用户，供 Django 从 session 恢复登录状态时使用"""
         try:
             return get_user_model().objects.get(pk=username)
         except get_user_model().DoesNotExist:

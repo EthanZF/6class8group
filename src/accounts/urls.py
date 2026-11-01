@@ -1,3 +1,8 @@
+"""
+CTY所注：accounts 应用路由模块
+模块功能：定义账户相关的 URL 路由表，将登录、注册、登出、操作结果提示、
+忘记密码、发送重置密码验证码等请求路径映射到对应视图，命名空间为 accounts。
+"""
 from django.urls import path
 from django.urls import re_path
 

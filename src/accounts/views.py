@@ -1,3 +1,9 @@
+"""
+CTY所注：accounts 应用视图模块
+模块功能：处理用户账户相关的全部 HTTP 请求，包括用户注册（含邮箱验证邮件发送）、
+登录/登出、注册结果与邮箱验证结果展示、忘记密码（验证码校验后重置密码）、
+发送重置密码邮箱验证码等功能。
+"""
 # CTY所注：导入日志模块，用于记录运行信息
 import logging
 from django.utils.translation import gettext_lazy as _
@@ -195,6 +201,11 @@ class LoginView(LoginFormView):
 
 # CTY所注：操作结果视图，处理"注册成功提示"和"邮箱验证"两种场景
 def account_result(request):
+    """
+    CTY所注：操作结果视图
+    根据 GET 参数 type 区分两种场景：register=注册成功提示页；
+    validation=邮箱验证（比对签名，通过后激活用户）
+    """
     # CTY所注：type 区分场景（register=注册成功提示，validation=邮箱验证），id 为用户id
     type = request.GET.get('type')
     id = request.GET.get('id')
@@ -259,8 +270,10 @@ class ForgetPasswordView(SecureFormView):
 
 # CTY所注：发送"忘记密码"邮箱验证码的接口视图
 class ForgetPasswordEmailCode(View):
+    """CTY所注：忘记密码邮箱验证码接口，接收 POST 邮箱并发送验证码"""
 
     def post(self, request: HttpRequest):
+        """CTY所注：处理 POST 请求：校验邮箱 → 生成验证码 → 发邮件并写缓存"""
         # CTY所注：校验邮箱格式，不合法直接返回错误提示
         form = ForgetPasswordCodeForm(request.POST)
         if not form.is_valid():

@@ -1,3 +1,8 @@
+"""
+CTY所注：accounts 应用工具模块
+模块功能：提供忘记密码流程中邮箱验证码的完整生命周期管理，包括验证码邮件发送、
+验证码写入缓存（5 分钟有效期）、读取缓存验证码、校验验证码正确性。
+"""
 import typing
 from datetime import timedelta
 

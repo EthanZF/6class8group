@@ -1,3 +1,9 @@
+"""
+CTY所注：accounts 应用模型模块
+模块功能：定义博客系统的自定义用户模型 BlogUser，在 Django 内置 AbstractUser
+（已含 username/email/password 等字段）基础上扩展昵称、创建时间、资料修改时间、
+账号来源等博客业务所需字段，并提供作者页 URL 解析等方法。
+"""
 # CTY所注：导入 Django 自带的用户模型基类 AbstractUser，本项目用户模型在此基础上扩展
 from django.contrib.auth.models import AbstractUser
 from django.db import models
@@ -23,17 +29,17 @@ class BlogUser(AbstractUser):
     source = models.CharField(_('create source'), max_length=100, blank=True)
 
     def get_absolute_url(self):
-        # CTY所注：返回该用户的作者详情页相对 URL（/author/<username>）
+        """CTY所注：返回该用户的作者详情页相对 URL（/author/<username>）"""
         return reverse(
             'blog:author_detail', kwargs={
                 'author_name': self.username})
 
     def __str__(self):
-        # CTY所注：对象的字符串表示，后台和 shell 中显示为邮箱
+        """CTY所注：对象的字符串表示，后台和 shell 中显示为邮箱"""
         return self.email
 
     def get_full_url(self):
-        # CTY所注：在相对 URL 前拼接站点域名，得到完整的可访问地址（用于邮件、站点地图等场景）
+        """CTY所注：在相对 URL 前拼接站点域名，得到完整的可访问地址（用于邮件、站点地图等场景）"""
         site = get_current_site().domain
         url = "https://{site}{path}".format(site=site,
                                             path=self.get_absolute_url())

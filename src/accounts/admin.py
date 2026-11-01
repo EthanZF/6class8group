@@ -1,3 +1,9 @@
+"""
+CTY所注：accounts 应用后台管理模块
+模块功能：定制 Django Admin 中用户（BlogUser）的管理方式，包括后台添加用户表单
+（两次密码输入及一致性校验、密码哈希入库）、后台修改用户表单，以及用户列表页的
+展示列、排序和搜索配置。
+"""
 # CTY所注：导入 Django 表单模块，用于自定义后台用户表单
 from django import forms
 # CTY所注：导入 Django 自带的用户后台管理基类 UserAdmin
@@ -27,8 +33,8 @@ class BlogUserCreationForm(forms.ModelForm):
         fields = ('email',)
 
     def clean_password2(self):
+        """CTY所注：校验两次输入的密码是否一致，不一致则抛出验证错误"""
         # Check that the two password entries match
-        # CTY所注：校验两次输入的密码是否一致，不一致则抛出验证错误
         password1 = self.cleaned_data.get("password1")
         password2 = self.cleaned_data.get("password2")
         if password1 and password2 and password1 != password2:
@@ -36,6 +42,7 @@ class BlogUserCreationForm(forms.ModelForm):
         return password2
 
     def save(self, commit=True):
+        """CTY所注：保存用户，先调用 set_password 将明文密码哈希后再入库，来源标记为 adminsite"""
         # Save the provided password in hashed format
         # CTY所注：先不落库，调用 set_password 将明文密码哈希后再保存
         user = super().save(commit=False)

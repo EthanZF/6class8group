@@ -1,3 +1,9 @@
+"""
+CTY所注：accounts 应用表单模块
+模块功能：定义账户相关的全部表单及其字段校验逻辑，包括登录表单（定制控件样式）、
+注册表单（邮箱唯一性校验）、忘记密码表单（两次新密码一致性、邮箱存在性、
+邮箱验证码校验）以及发送重置密码验证码的邮箱表单。
+"""
 # CTY所注：导入 Django 表单基类
 from django import forms
 # CTY所注：get_user_model 获取当前项目启用的用户模型；password_validation 用于密码强度校验
@@ -42,7 +48,7 @@ class RegisterForm(UserCreationForm):
             attrs={'placeholder': "repeat password", "class": "form-control"})
 
     def clean_email(self):
-        # CTY所注：校验邮箱是否已被注册，已存在则抛出验证错误
+        """CTY所注：校验邮箱是否已被注册，已存在则抛出验证错误"""
         email = self.cleaned_data['email']
         if get_user_model().objects.filter(email=email).exists():
             raise ValidationError(_("email already exists"))
@@ -102,7 +108,7 @@ class ForgetPasswordForm(forms.Form):
     )
 
     def clean_new_password2(self):
-        # CTY所注：校验两次新密码是否一致，并调用 Django 自带的密码强度校验
+        """CTY所注：校验两次新密码是否一致，并调用 Django 自带的密码强度校验"""
         password1 = self.data.get("new_password1")
         password2 = self.data.get("new_password2")
         if password1 and password2 and password1 != password2:
@@ -112,7 +118,7 @@ class ForgetPasswordForm(forms.Form):
         return password2
 
     def clean_email(self):
-        # CTY所注：校验邮箱对应的用户是否存在，不存在则报错
+        """CTY所注：校验邮箱对应的用户是否存在，不存在则报错"""
         user_email = self.cleaned_data.get("email")
         if not BlogUser.objects.filter(
                 email=user_email
@@ -122,7 +128,7 @@ class ForgetPasswordForm(forms.Form):
         return user_email
 
     def clean_code(self):
-        # CTY所注：调用 utils.verify 校验邮箱验证码是否正确（与缓存中保存的验证码比对）
+        """CTY所注：调用 utils.verify 校验邮箱验证码是否正确（与缓存中保存的验证码比对）"""
         code = self.cleaned_data.get("code")
         error = utils.verify(
             email=self.cleaned_data.get("email"),

@@ -1,5 +1,5 @@
 """
-Test cases for user authentication business logic
+CTY所注：Test cases for user authentication business logic
 包括用户注册、登录、密码管理、权限等核心业务逻辑
 """
 from django.test import TestCase, Client

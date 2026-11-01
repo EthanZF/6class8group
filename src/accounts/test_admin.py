@@ -1,5 +1,5 @@
 """
-Accounts Admin 测试
+CTY所注：Accounts Admin 测试
 测试用户管理后台的各项功能
 """
 from django.contrib.admin.sites import AdminSite
