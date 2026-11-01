@@ -1,0 +1,70 @@
+/* ZFH: 登录页样式：定义 body 内边距、.form-signin 表单与 .card 卡片的布局与外观 */
+body {
+  /* ZFH: 页面整体上下各留 40px 内边距，背景设为白色 */
+  padding-top: 40px;
+  padding-bottom: 40px;
+  background-color: #fff;
+}
+
+.form-signin {
+  /* ZFH: 登录表单容器：限制最大宽度并居中，留出统一内边距 */
+  max-width: 330px;
+  padding: 15px;
+  margin: 0 auto;
+}
+.form-signin-heading {
+  /* ZFH: 表单标题：控制字号、字重、颜色与下边距 */
+  margin: 0 0 15px;
+  font-size: 18px;
+  font-weight: 400;
+  color: #555;
+}
+.form-signin .checkbox {
+  /* ZFH: 复选框：下边距与常规字重 */
+  margin-bottom: 10px;
+  font-weight: normal;
+}
+.form-signin .form-control {
+  /* ZFH: 输入控件：相对定位、固定高度，并统一各浏览器的盒模型 */
+  position: relative;
+  height: auto;
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+  padding: 10px;
+  font-size: 16px;
+}
+.form-signin .form-control:focus {
+  /* ZFH: 聚焦时提升层级，避免输入框被相邻元素遮挡 */
+  z-index: 2;
+}
+.form-signin input[type="email"] {
+  /* ZFH: 邮箱输入框下边距 */
+  margin-bottom: 10px;
+}
+.form-signin input[type="password"] {
+  /* ZFH: 密码输入框下边距 */
+  margin-bottom: 10px;
+}
+.card {
+  /* ZFH: 卡片容器：固定宽度、居中，带圆角与阴影 */
+  width: 304px;
+  padding: 20px 25px 30px;
+  margin: 0 auto 25px;
+  background-color: #f7f7f7;
+  border-radius: 2px;
+  -webkit-box-shadow: 0 2px 2px rgba(0, 0, 0, .3);
+          box-shadow: 0 2px 2px rgba(0, 0, 0, .3);
+}
+.card-signin {
+  /* ZFH: 登录卡片：更大宽度与内边距，用于承载登录表单 */
+  width: 354px;
+  padding: 40px;
+}
+.card-signin .profile-img {
+  /* ZFH: 头像图片：块级、固定尺寸并居中 */
+  display: block;
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 10px;
+}

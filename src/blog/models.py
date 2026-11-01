@@ -1,26 +1,34 @@
 # ZFH: blog应用核心数据模型，定义文章、分类、标签、友情链接、侧边栏和站点配置
+# ZFH: 标准库导入：logger 记录运行日志，re 解析 Markdown 图片，abstractmethod 声明抽象方法
 import logging
 import re
 from abc import abstractmethod
 
+# ZFH: Django 框架依赖：settings 取用户模型、ValidationError 抛业务校验错误、models 为 ORM 核心
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+# ZFH: reverse 用于生成前台与 admin 的相对 URL
 from django.urls import reverse
+# ZFH: now 作为时间字段默认值，_ 提供多语言文案包装
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
+# ZFH: 第三方库：MDTextField 提供 Markdown 编辑器字段，slugify 将中文标题转成拼音 slug
 from mdeditor.fields import MDTextField
 from uuslug import slugify
 
+# ZFH: 项目内部工具：缓存装饰器与缓存句柄、当前站点域名解析、缓存超时与键名常量
 from djangoblog.utils import cache_decorator, cache
 from djangoblog.utils import get_current_site
 from djangoblog.constants import CacheTimeout, CacheKey
 
+# ZFH: 模块级日志器，按 __name__ 命名便于在日志配置中定位 blog.models 的输出
 logger = logging.getLogger(__name__)
 
 
 # ZFH: 链接显示位置枚举（首页/列表页/文章页/全部/滑动）
 class LinkShowType(models.TextChoices):
+    # ZFH: 每项为(数据库存储值, 后台展示文案)二元组，存储值取位置英文首字母
     I = ('i', _('index'))
     L = ('l', _('list'))
     P = ('p', _('post'))
@@ -42,6 +50,7 @@ class BaseModel(models.Model):
         is_update_views = isinstance(
             self, Article) and 'update_fields' in kwargs and kwargs['update_fields'] == ['views']
         if is_update_views:
+            # ZFH: 用 QuerySet.update 只写 views 列，开销小于整行 save，也避免 slug 被重复计算
             Article.objects.filter(pk=self.pk).update(views=self.views)
         else:
             # ZFH: 对含title/name的模型自动生成拼音slug
@@ -50,20 +59,24 @@ class BaseModel(models.Model):
                     self, 'title') if 'title' in self.__dict__ else getattr(
                     self, 'name')
                 setattr(self, 'slug', slugify(slug))
+        # ZFH: 统一调用父类 save 完成持久化与信号触发，保留 update_fields、force_insert 等参数语义
         super().save(*args, **kwargs)
 
     def get_full_url(self):
         # ZFH: 返回完整URL（含域名）
         site = get_current_site().domain
+        # ZFH: 借助子类实现的 get_absolute_url 拼接协议与域名，供分享链接、RSS 等绝对地址场景使用
         url = "https://{site}{path}".format(site=site,
                                             path=self.get_absolute_url())
         return url
 
     class Meta:
+        # ZFH: 声明为抽象模型，不生成独立数据表，字段由各子类继承
         abstract = True
 
     @abstractmethod
     def get_absolute_url(self):
+        # ZFH: 抽象方法仅定义接口，强制每个子类给出自己的详情页地址规则
         pass
 
 
@@ -135,11 +148,13 @@ class Article(BaseModel):
         return self.body
 
     def __str__(self):
+        # ZFH: 后台列表与模板中默认以标题标识一篇文章
         return self.title
 
     class Meta:
         # ZFH: 默认按排序权重降序 + 发布时间降序排列
         ordering = ['-article_order', '-pub_time']
+        # ZFH: 后台展示名称走国际化，单复数一致；get_latest_by 支持 latest() 按 id 取最新一篇
         verbose_name = _('article')
         verbose_name_plural = verbose_name
         get_latest_by = 'id'
@@ -167,11 +182,13 @@ class Article(BaseModel):
     def get_category_tree(self):
         # ZFH: 获取分类的父级链路（从当前分类到根分类）
         tree = self.category.get_category_tree()
+        # ZFH: 把分类对象转换为(名称, 链接)二元组，方便模板直接渲染面包屑导航
         names = list(map(lambda c: (c.name, c.get_absolute_url()), tree))
 
         return names
 
     def save(self, *args, **kwargs):
+        # ZFH: 当前未追加额外逻辑，显式覆写为后续扩展保存前钩子（如摘要生成）预留入口
         super().save(*args, **kwargs)
 
     def viewed(self):
@@ -184,9 +201,11 @@ class Article(BaseModel):
         cache_key = CacheKey.ARTICLE_COMMENTS.format(article_id=self.id)
         value = cache.get(cache_key)
         if value:
+            # ZFH: 命中缓存直接返回，避免文章详情页反复查询评论表
             logger.info(f'Cache HIT: article comments (id={self.id})')
             return value
         else:
+            # ZFH: 未命中时查询已审核评论，按 id 倒序让最新评论排在前面，随后回写缓存
             comments = self.comment_set.filter(is_enable=True).order_by('-id')
             cache.set(cache_key, comments, CacheTimeout.HOUR_10)
             logger.info(f'Cache MISS: article comments (id={self.id})')
@@ -206,15 +225,19 @@ class Article(BaseModel):
     @cache_decorator(expiration=CacheTimeout.HOUR_10)
     def prev_article(self):
         # ZFH: 前一篇已发布文章
+        # ZFH: 以 id 小于当前文章为条件过滤已发布文章，取默认排序下的第一条作为上一篇
         return Article.objects.filter(id__lt=self.id, status='p').first()
 
     def get_first_image_url(self):
         """
         ZFH: 从Markdown正文中提取第一张图片URL
         """
+        # ZFH: 非贪婪捕获 ![alt](url) 中的 url 部分，只关心第一处匹配
         match = re.search(r'!\[.*?\]\((.+?)\)', self.body)
         if match:
+            # ZFH: 取第一个捕获组，即图片地址，用于列表页缩略图或分享封面
             return match.group(1)
+        # ZFH: 正文无图片时返回空串，调用方按无封面处理
         return ""
 
 
@@ -236,6 +259,7 @@ class Category(BaseModel):
     index = models.IntegerField(default=0, verbose_name=_('index'))
 
     class Meta:
+        # ZFH: 按 index 降序展示，index 越大排序越靠前
         ordering = ['-index']
         verbose_name = _('category')
         verbose_name_plural = verbose_name
@@ -247,6 +271,7 @@ class Category(BaseModel):
                 'category_name': self.slug})
 
     def __str__(self):
+        # ZFH: 后台与模板中默认显示分类名称
         return self.name
 
     @cache_decorator(CacheTimeout.HOUR_10)
@@ -257,10 +282,13 @@ class Category(BaseModel):
         categorys = []
 
         def parse(category):
+            # ZFH: 递归内部函数：先记录当前分类，再沿 parent_category 向上查找
             categorys.append(category)
             if category.parent_category:
+                # ZFH: 存在父分类时继续上溯，直到根分类 parent_category 为空
                 parse(category.parent_category)
 
+        # ZFH: 从当前分类自身开始构建父级链路
         parse(self)
         return categorys
 
@@ -270,17 +298,22 @@ class Category(BaseModel):
         ZFH: 递归获取当前分类及其所有子分类
         """
         categorys = []
+        # ZFH: 一次性取出全部分类并复用，避免递归过程中每层都访问数据库
         all_categorys = Category.objects.all()
 
         def parse(category):
+            # ZFH: 递归内部函数：把分类加入结果集并继续遍历其直接子分类
             if category not in categorys:
+                # ZFH: 去重判断，防止同一分类被多次收集导致重复展示
                 categorys.append(category)
             childs = all_categorys.filter(parent_category=category)
             for child in childs:
+                # ZFH: 逐个处理子分类，再递归下探形成完整子树
                 if category not in categorys:
                     categorys.append(child)
                 parse(child)
 
+        # ZFH: 从当前分类自身开始向下遍历子树
         parse(self)
         return categorys
 
@@ -294,6 +327,7 @@ class Tag(BaseModel):
     slug = models.SlugField(default='no-slug', max_length=60, blank=True)
 
     def __str__(self):
+        # ZFH: 后台与模板中默认显示标签名称
         return self.name
 
     def get_absolute_url(self):
@@ -306,6 +340,7 @@ class Tag(BaseModel):
         return Article.objects.filter(tags__name=self.name).distinct().count()
 
     class Meta:
+        # ZFH: 按名称字母序排列标签，便于后台管理
         ordering = ['name']
         verbose_name = _('tag')
         verbose_name_plural = verbose_name
@@ -335,11 +370,13 @@ class Links(models.Model):
     last_mod_time = models.DateTimeField(_('modify time'), default=now)
 
     class Meta:
+        # ZFH: 按 sequence 升序排列，序号小的友情链接排在前面
         ordering = ['sequence']
         verbose_name = _('link')
         verbose_name_plural = verbose_name
 
     def __str__(self):
+        # ZFH: 后台列表中显示链接名称
         return self.name
 
 
@@ -360,11 +397,13 @@ class SideBar(models.Model):
     last_mod_time = models.DateTimeField(_('modify time'), default=now)
 
     class Meta:
+        # ZFH: 按 sequence 升序排列，决定侧边栏组件的上下顺序
         ordering = ['sequence']
         verbose_name = _('sidebar')
         verbose_name_plural = verbose_name
 
     def __str__(self):
+        # ZFH: 后台列表中显示侧边栏组件标题
         return self.name
 
 
@@ -462,19 +501,25 @@ class BlogSettings(models.Model):
         '评论是否需要审核', default=False, null=False)
 
     class Meta:
+        # ZFH: 后台单例配置的展示名称，单复数保持一致
         verbose_name = _('Website configuration')
         verbose_name_plural = verbose_name
 
     def __str__(self):
+        # ZFH: 用站点名称代表这条配置记录
         return self.site_name
 
     def clean(self):
         # ZFH: 单例校验，全库只允许一条配置记录
         if BlogSettings.objects.exclude(id=self.id).count():
+            # ZFH: exclude 自身后再计数，保证编辑已有记录不会误判为新增第二条
             raise ValidationError(_('There can only be one configuration'))
 
     def save(self, *args, **kwargs):
+        # ZFH: 先完成常规保存，确保配置数据已落库
         super().save(*args, **kwargs)
         # ZFH: 配置变更后清空全站缓存
+        # ZFH: 局部导入避免模块加载阶段出现循环依赖
         from djangoblog.utils import cache
+        # ZFH: 配置影响导航、侧边栏等多处页面，粗暴清空缓存以保证立即生效
         cache.clear()

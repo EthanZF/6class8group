@@ -1,0 +1,11 @@
+/* ZFH: 账号相关样式：定义登录/找回密码页面中 .button 按钮的外观 */
+.button {
+    /* ZFH: 按钮公共样式：无边框、横向大内边距、内容居中、行内块展示、固定字号与边距 */
+    border: none;
+    padding: 4px 80px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+}
