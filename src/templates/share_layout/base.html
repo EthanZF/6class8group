@@ -45,11 +45,24 @@
                     document.documentElement.removeAttribute(THEME_ATTR);
                     document.documentElement.classList.remove('dark');
                 }
+                // 同步 body 上的 data-theme：Vite 构建里的旧主题逻辑会在 body 上
+                // 设置该属性，CSS 的 [data-theme="dark"] 选择器会命中 body 并覆盖
+                // :root 浅色变量，导致切换后页面视觉不变
+                if (document.body) {
+                    if (isDark) document.body.setAttribute(THEME_ATTR, 'dark');
+                    else document.body.removeAttribute(THEME_ATTR);
+                }
             }
 
             // 立即应用主题到html元素（防止闪烁）
             const theme = getPreferredTheme();
             applyTheme(theme);
+
+            // bundle 模块加载后会在 body 上重设 data-theme，
+            // DOMContentLoaded 时以 html 当前状态为准做一次对齐
+            document.addEventListener('DOMContentLoaded', function() {
+                applyTheme(document.documentElement.getAttribute(THEME_ATTR) === 'dark' ? 'dark' : 'light');
+            });
 
             // 存储主题供后续使用
             window.__THEME__ = theme;

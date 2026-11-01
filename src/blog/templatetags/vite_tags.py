@@ -8,6 +8,7 @@ Vite资源加载Django模板标签
     {% vite_css 'src/styles/main.css' %}
 """
 
+import glob
 import json
 import os
 from django import template
@@ -59,6 +60,19 @@ def load_manifest():
         return {}
 
 
+def _find_built_assets():
+    """
+    manifest 缺失时，扫描 dist 目录查找已构建的 main-* 产物
+    返回 (js_url, css_url)，找不到的项为 None
+    """
+    dist_dir = os.path.join(settings.BASE_DIR, 'blog/static/blog/dist')
+    js_files = glob.glob(os.path.join(dist_dir, 'js', 'main-*.js'))
+    css_files = glob.glob(os.path.join(dist_dir, 'css', 'main-*.css'))
+    js_url = static(f'blog/dist/js/{os.path.basename(js_files[0])}') if js_files else None
+    css_url = static(f'blog/dist/css/{os.path.basename(css_files[0])}') if css_files else None
+    return js_url, css_url
+
+
 @register.simple_tag
 def vite_asset(entry_name):
     """
@@ -105,6 +119,16 @@ def vite_js(entry_name='src/main.js'):
 
     # 开发模式：使用Vite开发服务器
     if not manifest:
+        # manifest 缺失但构建产物存在时，直接使用构建产物
+        js_url, css_url = _find_built_assets()
+        if js_url:
+            css_html = f'    <link rel="stylesheet" href="{css_url}">\n' if css_url else ''
+            logger.info(f'✅ Vite manifest missing, using built assets: {js_url}')
+            return mark_safe(f'''
+    <!-- Vite构建产物（manifest缺失，目录扫描回退） -->
+{css_html}    <script type="module" crossorigin src="{js_url}"></script>
+''')
+
         vite_dev_server = getattr(settings, 'VITE_DEV_SERVER_URL', 'http://localhost:5173')
         return mark_safe(f'''
             <!-- Vite开发模式 -->

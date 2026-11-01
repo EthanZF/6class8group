@@ -36,10 +36,31 @@
                     document.documentElement.removeAttribute(THEME_ATTR);
                     document.documentElement.classList.remove('dark');
                 }
+                // 同步 body 上的 data-theme：CSS 的 [data-theme="dark"] 选择器
+                // 会命中 body 并覆盖 :root 浅色变量，必须与 html 保持一致
+                if (document.body) {
+                    if (theme === 'dark') document.body.setAttribute(THEME_ATTR, 'dark');
+                    else document.body.removeAttribute(THEME_ATTR);
+                }
             }
 
             applyTheme(getPreferredTheme());
             window.__THEME__ = getPreferredTheme();
+
+            // DOMContentLoaded 时以 html 当前状态为准对齐 body
+            document.addEventListener('DOMContentLoaded', function() {
+                applyTheme(document.documentElement.getAttribute(THEME_ATTR) === 'dark' ? 'dark' : 'light');
+            });
+
+            // 全局主题管理器，供主题切换按钮调用
+            window.themeManager = {
+                toggle: function() {
+                    var next = document.documentElement.getAttribute(THEME_ATTR) === 'dark' ? 'light' : 'dark';
+                    applyTheme(next);
+                    localStorage.setItem(STORAGE_KEY, next);
+                    window.__THEME__ = next;
+                }
+            };
         })();
     </script>
 
