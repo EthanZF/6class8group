@@ -1,7 +1,9 @@
+// ZFH: 数学公式智能加载器：检测页面是否含 LaTeX 公式，有则动态加载并配置 MathJax，无则跳过
 /**
  * MathJax 智能加载器
  * 检测页面是否包含数学公式，如果有则动态加载和配置MathJax
  */
+// ZFH: 使用立即执行函数（IIFE）隔离作用域，避免内部变量污染全局
 (function() {
     'use strict';
     
@@ -11,6 +13,7 @@
      * 避免 $PATH、$(cmd) 等 Shell 变量触发误判
      * @returns {boolean} 是否包含数学公式
      */
+    // ZFH: 检测正文是否含数学公式：仅扫描正文容器，排除代码块，用正则匹配 LaTeX 语法
     function hasMathFormulas() {
         // 只检查文章正文，范围外不做处理
         var article = document.querySelector('.article.prose, .entry-content, #content');
@@ -31,6 +34,7 @@
     /**
      * 配置MathJax
      */
+    // ZFH: 配置 MathJax：设置公式分隔符、跳过的标签、启动回调与输出参数
     function configureMathJax() {
         window.MathJax = {
             tex: {
@@ -53,6 +57,7 @@
             // 启动配置
             startup: {
                 ready() {
+                    // ZFH: 初始化完成后，对正文与评论区分别执行公式渲染
                     console.log('MathJax配置完成，开始初始化...');
                     MathJax.startup.defaultReady();
                     
@@ -92,6 +97,7 @@
     /**
      * 加载MathJax库
      */
+    // ZFH: 动态加载 MathJax 脚本，失败时回退到备用 CDN
     function loadMathJax() {
         console.log('检测到数学公式，开始加载MathJax...');
         
@@ -124,6 +130,7 @@
     /**
      * 初始化函数
      */
+    // ZFH: 初始化：等待 DOM 就绪后检测公式，命中才加载 MathJax
     function init() {
         // 等待DOM完全加载
         if (document.readyState === 'loading') {
@@ -142,6 +149,7 @@
     }
     
     // 提供重新渲染的全局方法，供动态内容使用
+    // ZFH: 暴露全局重渲染方法，供动态插入内容后手动重新排版公式
     window.rerenderMathJax = function(element) {
         if (window.MathJax && window.MathJax.typesetPromise) {
             const target = element || document.body;
@@ -151,5 +159,6 @@
     };
     
     // 启动初始化
+    // ZFH: 立即启动加载器
     init();
 })();

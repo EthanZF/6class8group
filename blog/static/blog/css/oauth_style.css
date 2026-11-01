@@ -1,4 +1,6 @@
+/* ZFH: OAuth 第三方登录样式：定义各社交平台雪碧图图标与彩色按钮的位移、配色与公共规则 */
 
+/* ZFH: Google 图标：雪碧图位移、背景色与前景色 */
 .icon-sn-google {
     background-position: 0 -28px;
 }
@@ -12,6 +14,7 @@
     color: #4285f4;
 }
 
+/* ZFH: GitHub 图标：雪碧图位移、背景色与前景色 */
 .icon-sn-github {
     background-position: -28px -28px;
 }
@@ -25,6 +28,7 @@
     color: #333;
 }
 
+/* ZFH: 微博图标：雪碧图位移、背景色与前景色 */
 .icon-sn-weibo {
     background-position: -56px -28px;
 }
@@ -38,6 +42,7 @@
     color: #e90d24;
 }
 
+/* ZFH: QQ 图标：雪碧图位移、背景色与前景色 */
 .icon-sn-qq {
     background-position: -84px -28px;
 }
@@ -51,6 +56,7 @@
     color: #0098e6;
 }
 
+/* ZFH: Twitter 图标：雪碧图位移、背景色与前景色 */
 .icon-sn-twitter {
     background-position: -112px -28px;
 }
@@ -64,6 +70,7 @@
     color: #50abf1;
 }
 
+/* ZFH: Facebook 图标：雪碧图位移、背景色与前景色 */
 .icon-sn-facebook {
     background-position: -140px -28px;
 }
@@ -77,6 +84,7 @@
     color: #4862a3;
 }
 
+/* ZFH: 人人网图标：雪碧图位移、背景色与前景色 */
 .icon-sn-renren {
     background-position: -168px -28px;
 }
@@ -90,6 +98,7 @@
     color: #197bc8;
 }
 
+/* ZFH: 腾讯微博（TQQ）图标：雪碧图位移、背景色与前景色 */
 .icon-sn-tqq {
     background-position: -196px -28px;
 }
@@ -103,6 +112,7 @@
     color: #1f9ed2;
 }
 
+/* ZFH: 豆瓣图标：雪碧图位移、背景色与前景色 */
 .icon-sn-douban {
     background-position: -224px -28px;
 }
@@ -116,6 +126,7 @@
     color: #279738;
 }
 
+/* ZFH: 微信图标：雪碧图位移、背景色与前景色 */
 .icon-sn-weixin {
     background-position: -252px -28px;
 }
@@ -129,6 +140,7 @@
     color: #00b500;
 }
 
+/* ZFH: 更多（虚线）图标：雪碧图位移、背景色与前景色 */
 .icon-sn-dotted {
     background-position: -280px -28px;
 }
@@ -142,6 +154,7 @@
     color: #eee;
 }
 
+/* ZFH: 站点图标：雪碧图位移、背景色与前景色 */
 .icon-sn-site {
     background-position: -308px -28px;
 }
@@ -155,6 +168,7 @@
     color: #00b500;
 }
 
+/* ZFH: LinkedIn 图标：雪碧图位移、背景色与前景色 */
 .icon-sn-linkedin {
     background-position: -336px -28px;
 }
@@ -168,6 +182,7 @@
     color: #0077b9;
 }
 
+/* ZFH: 图标雪碧图公共设置：指定背景图、尺寸、对齐与 background-size */
 [class*=icon-sn-] {
     display: inline-block;
     background-image: url('../img/icon-sn.svg');
@@ -178,11 +193,13 @@
     background-size: auto 56px;
 }
 
+/* ZFH: 图标悬停时降低透明度 */
 [class*=icon-sn-]:hover {
     opacity: .8;
     filter: alpha(opacity=80);
 }
 
+/* ZFH: 各平台登录按钮背景色，以及统一的活动/聚焦/悬停变体 */
 .btn-sn-google {
     background: #4285f4;
 }
@@ -287,19 +304,23 @@
     background: #0067a0;
 }
 
+/* ZFH: 按钮公共样式：去掉边框、使用白色文字 */
 [class*=btn-sn-], [class*=btn-sn-]:active, [class*=btn-sn-]:focus, [class*=btn-sn-]:hover {
     border: none;
     color: #fff;
 }
 
+/* ZFH: “更多”按钮：去掉内边距 */
 .btn-sn-more {
     padding: 0;
 }
 
+/* ZFH: “更多”按钮及其活动/悬停态：去掉阴影 */
 .btn-sn-more, .btn-sn-more:active, .btn-sn-more:hover {
     box-shadow: none;
 }
 
+/* ZFH: 按钮内的图标使用透明背景，避免覆盖按钮背景色 */
 [class*=btn-sn-] [class*=icon-sn-] {
     background-color: transparent;
 }
