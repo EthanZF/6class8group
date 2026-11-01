@@ -86,3 +86,6 @@ img/
 .specify/
 specs/
 .interface-design/
+
+# 本地打包备份（如 djangoblog.zip），不入库
+*.zip
