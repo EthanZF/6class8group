@@ -26,6 +26,8 @@ from comments.utils import send_comment_email
 from djangoblog.spider_notify import SpiderNotify
 # zfh: 导入缓存与缓存清理相关工具函数
 from djangoblog.utils import cache, expire_view_cache, delete_sidebar_cache, delete_view_cache
+# zfh: 导入列表页缓存失效函数，用于一次性清掉所有分页的列表缓存
+from djangoblog.utils import invalidate_list_cache
 # zfh: 导入获取当前站点的工具函数
 from djangoblog.utils import get_current_site
 # zfh: 导入第三方登录用户模型
@@ -194,44 +196,16 @@ def model_post_save_callback(
 
         # zfh: 若保存的是文章对象
         if isinstance(instance, Article):
-            # 清理文章列表首页缓存
-            # zfh: 删除首页第一页缓存
-            cache.delete('index_1')
+            # 清理文章列表缓存
+            # zfh: 版本号 +1 即可让首页/分类/标签/作者的第 1 页及后续所有分页一起失效,
+            # zfh: 不再逐个 cache.delete('xxx_1')——那样第 2 页及以后会一直陈旧到缓存过期
+            invalidate_list_cache()
 
             # 清理文章详情缓存
             # zfh: 拼装该文章的评论缓存键
             article_cache_key = f'article_comments_{instance.id}'
             # zfh: 删除该文章的评论缓存
             cache.delete(article_cache_key)
-
-            # 清理分类相关缓存
-            # zfh: 文章有分类时清理对应分类列表缓存
-            if instance.category:
-                # zfh: 取出分类名称
-                category_name = instance.category.name
-                # zfh: 删除该分类第一页的列表缓存
-                cache.delete(f'category_list_{category_name}_1')
-
-            # 清理标签相关缓存
-            # zfh: 捕获标签查询异常，避免影响保存流程
-            try:
-                # zfh: 遍历文章的所有标签
-                for tag in instance.tags.all():
-                    # zfh: 删除该标签第一页的列表缓存
-                    cache.delete(f'tag_{tag.name}_1')
-            # zfh: 忽略标签尚未关联时的异常
-            except Exception:
-                pass  # 可能在创建时tags还未关联
-
-            # 清理作者相关缓存
-            # zfh: 文章有作者时清理对应作者列表缓存
-            if instance.author:
-                # zfh: 延迟导入slug生成函数
-                from uuslug import slugify
-                # zfh: 由作者用户名生成slug
-                author_slug = slugify(instance.author.username)
-                # zfh: 删除该作者第一页的列表缓存
-                cache.delete(f'author_{author_slug}_1')
 
             # 清理归档缓存
             # zfh: 删除归档页缓存
@@ -246,8 +220,8 @@ def model_post_save_callback(
         # zfh: 若保存的是分类对象
         elif isinstance(instance, Category):
             # 清理分类相关缓存
-            # zfh: 删除该分类第一页的列表缓存
-            cache.delete(f'category_list_{instance.name}_1')
+            # zfh: 分类名变化会影响分类列表与导航，版本号 +1 让所有分页一起失效
+            invalidate_list_cache()
             # zfh: 清理侧边栏缓存
             delete_sidebar_cache()
             # zfh: 清理SEO上下文处理器缓存
@@ -256,8 +230,8 @@ def model_post_save_callback(
         # zfh: 若保存的是标签对象
         elif isinstance(instance, Tag):
             # 清理标签相关缓存
-            # zfh: 删除该标签第一页的列表缓存
-            cache.delete(f'tag_{instance.name}_1')
+            # zfh: 标签名变化会影响标签列表，版本号 +1 让所有分页一起失效
+            invalidate_list_cache()
             # zfh: 清理侧边栏缓存
             delete_sidebar_cache()
 

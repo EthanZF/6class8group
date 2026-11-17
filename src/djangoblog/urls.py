@@ -54,10 +54,9 @@ sitemaps = {
 # 把 HTTP 错误码指向自己写的视图(代替 Django 默认的英文错误页)
 handler404 = 'blog.views.page_not_found_view'     # 404 页面不存在 → blog 应用里的自定义视图
 handler500 = 'blog.views.server_error_view'       # 500 服务器内部错误 → 自定义视图
-handle403 = 'blog.views.permission_denied_view'   # ⚠ 注意:Django 认的标准名是 handler403,
-                                                  # 这里写成 handle403(少了 r)实际不会生效,
-                                                  # 403 会仍走 Django 默认页面——属原项目遗留拼写问题,
-                                                  # 标注时不修改代码,如需生效请自行更名
+handler403 = 'blog.views.permission_denied_view'  # 403 权限不足 → 自定义视图
+                                                  # 注:此处曾误写为 handle403(少了 r),Django 只认 handler403,
+                                                  # 导致自定义 403 页长期不生效,现已修正
 
 
 # ==================== 健康检查接口 ====================

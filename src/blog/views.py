@@ -23,7 +23,7 @@ from blog.models import Article, Category, LinkShowType, Links, Tag
 from comments.forms import CommentForm
 from djangoblog.plugin_manage import hooks
 from djangoblog.plugin_manage.hook_constants import ARTICLE_CONTENT_HOOK_NAME
-from djangoblog.utils import cache, get_blog_setting, get_sha256
+from djangoblog.utils import cache, get_blog_setting, get_sha256, get_list_cache_version
 # ZFH: 导入列表视图 Mixin，复用 slug 缓存、文章查询优化、列表缓存与分页逻辑
 from djangoblog.mixins import (
     SlugCachedMixin,
@@ -60,11 +60,6 @@ class ArticleListView(CachedListViewMixin, PageNumberMixin, ListView):
     # ZFH: 默认友情链接展示类型，子类可按页面场景覆盖
     link_type = LinkShowType.L
 
-    # ZFH: 返回列表视图的缓存键，用于命中/写入列表页缓存
-    def get_view_cache_key(self):
-        # ZFH: 从查询参数 pages 中读取缓存标识，沿用项目既有的缓存键约定
-        return self.request.get['pages']
-
     # ZFH: 向模板上下文注入友情链接展示类型 linktype，再交由父类补充分页等上下文
     def get_context_data(self, **kwargs):
         # ZFH: 将 linktype 放入上下文，模板据此筛选不同类型的友情链接
@@ -90,9 +85,9 @@ class IndexView(OptimizedArticleQueryMixin, ArticleListView):
             type='a', status='p'
         )
 
-    # ZFH: 首页列表缓存键，按页码区分不同分页的缓存
+    # ZFH: 首页列表缓存键，按版本号与页码区分；版本号 +1 即可让所有分页一起失效
     def get_queryset_cache_key(self):
-        return f'index_{self.page_number}'
+        return f'index_{get_list_cache_version()}_{self.page_number}'
 
     # ZFH: 在父类上下文基础上补充站点级 SEO 标题、描述与关键词
     def get_context_data(self, **kwargs):
@@ -245,11 +240,11 @@ class CategoryDetailView(SlugCachedMixin, OptimizedArticleQueryMixin, ArticleLis
             category__name__in=categorynames, status='p'
         )
 
-    # ZFH: 分类列表缓存键，按分类名与页码区分缓存
+    # ZFH: 分类列表缓存键，按分类名、版本号与页码区分缓存
     def get_queryset_cache_key(self):
         # 复用缓存的对象，不再重复查询数据库
         category = self.get_slug_object()
-        return f'category_list_{category.name}_{self.page_number}'
+        return f'category_list_{category.name}_{get_list_cache_version()}_{self.page_number}'
 
     # ZFH: 分类页上下文：设置页面类型、标签名，并补充分类 SEO 信息
     def get_context_data(self, **kwargs):
@@ -287,12 +282,12 @@ class AuthorDetailView(OptimizedArticleQueryMixin, ArticleListView):
     """
     page_type = '作者文章归档'
 
-    # ZFH: 作者列表缓存键，对作者名做 slug 处理后按页码区分缓存
+    # ZFH: 作者列表缓存键，对作者名做 slug 处理后按版本号与页码区分缓存
     def get_queryset_cache_key(self):
         # ZFH: 延迟导入 slugify，对包含非 ASCII 字符的作者名做统一转换
         from uuslug import slugify
         author_name = slugify(self.kwargs['author_name'])
-        return f'author_{author_name}_{self.page_number}'
+        return f'author_{author_name}_{get_list_cache_version()}_{self.page_number}'
 
     # ZFH: 作者文章数据源：过滤出该作者的文章类型(type='a')且已发布(status='p')的记录
     def get_queryset_data(self):
@@ -342,11 +337,11 @@ class TagDetailView(SlugCachedMixin, OptimizedArticleQueryMixin, ArticleListView
             tags__name=tag.name, type='a', status='p'
         )
 
-    # ZFH: 标签列表缓存键，按标签名与页码区分缓存
+    # ZFH: 标签列表缓存键，按标签名、版本号与页码区分缓存
     def get_queryset_cache_key(self):
         # 复用缓存的对象，不再重复查询数据库
         tag = self.get_slug_object()
-        return f'tag_{tag.name}_{self.page_number}'
+        return f'tag_{tag.name}_{get_list_cache_version()}_{self.page_number}'
 
     # ZFH: 标签页上下文：设置页面类型、标签名，并补充标签 SEO 信息
     def get_context_data(self, **kwargs):

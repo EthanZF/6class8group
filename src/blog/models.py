@@ -353,8 +353,9 @@ class Links(models.Model):
     name = models.CharField(_('link name'), max_length=30, unique=True)
     # ZFH: 链接地址
     link = models.URLField(_('link'))
-    # ZFH: 排序序号（唯一）
-    sequence = models.IntegerField(_('order'), unique=True)
+    # ZFH: 排序序号（不再设唯一约束：后台填入重复序号时不应直接抛 IntegrityError，
+    # ZFH: 相同序号按插入顺序展示即可，排序由 Meta.ordering 保证）
+    sequence = models.IntegerField(_('order'), default=0)
     # ZFH: 是否在前台显示
     is_enable = models.BooleanField(
         _('is show'), default=True, blank=False, null=False)
@@ -387,8 +388,9 @@ class SideBar(models.Model):
     name = models.CharField(_('title'), max_length=100)
     # ZFH: 组件内容（Markdown格式，渲染时经Markdown处理）
     content = models.TextField(_('content'))
-    # ZFH: 排序序号（唯一）
-    sequence = models.IntegerField(_('order'), unique=True)
+    # ZFH: 排序序号（不再设唯一约束：后台填入重复序号时不应直接抛 IntegrityError，
+    # ZFH: 相同序号按插入顺序展示即可，排序由 Meta.ordering 保证）
+    sequence = models.IntegerField(_('order'), default=0)
     # ZFH: 是否启用
     is_enable = models.BooleanField(_('is enable'), default=True)
     # ZFH: 创建时间

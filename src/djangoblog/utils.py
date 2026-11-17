@@ -362,6 +362,33 @@ def delete_view_cache(prefix, keys):
     cache.delete(key)
 
 
+# ==================== 列表页缓存版本号 ====================
+# 列表页(首页/分类/标签/作者)的缓存 key 形如 index_<版本>_<页码>。
+# 旧写法只 cache.delete('index_1'),第 2 页及以后永远不会被清掉,
+# 发新文章后这些分页最多会陈旧到缓存过期(3 小时)。
+# 改为把版本号 +1:key 整体换了一代,所有页码的旧缓存立即失效,
+# 既不用枚举页码,也不依赖缓存后端是否支持按前缀删除。
+LIST_CACHE_VERSION_KEY = 'list_cache_version'
+
+
+# zfh: 读取当前列表页缓存版本号,不存在时视为第 1 版
+def get_list_cache_version():
+    # zfh: 缓存里没有版本号时返回默认值 1
+    return cache.get(LIST_CACHE_VERSION_KEY) or 1
+
+
+# zfh: 让所有列表页(含第 2 页及以后)的缓存一次性失效
+def invalidate_list_cache():
+    # zfh: 捕获自增失败:key 不存在或后端不支持 incr 时抛 ValueError
+    try:
+        # zfh: 支持原子自增时直接把版本号 +1
+        cache.incr(LIST_CACHE_VERSION_KEY)
+    # zfh: key 不存在时从 2 开始,相当于让版本 1 的缓存全部作废
+    except ValueError:
+        # zfh: timeout=None 表示版本号不过期,避免长期无人访问后回退到 1
+        cache.set(LIST_CACHE_VERSION_KEY, 2, None)
+
+
 # zfh: 获取静态资源的基础 URL
 def get_resource_url():
     # zfh: 配置了 STATIC_URL 时直接使用
