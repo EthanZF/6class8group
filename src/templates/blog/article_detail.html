@@ -122,7 +122,7 @@
                                 <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342a3 3 0 100-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 9.316a3 3 0 105.368 1.684 3 3 0 00-5.368-1.684zm0-9.316a3 3 0 105.368-1.684 3 3 0 00-5.368 1.684z"/>
                                 </svg>
-                                更多
+                                <span data-share-label>更多</span>
                             </button>
                         </div>
 
@@ -230,30 +230,29 @@
 {% block compress_js %}
     <script>
         // ZFH: 文章分享工具条：复制链接 / 系统原生分享
+        // 使用 document 事件委托，兼容 HTMX 局部刷新（#main 内容替换后脚本不会重新执行）
         (function () {
-            var share = document.getElementById('article-share');
-            if (!share) {
+            if (window.__articleShareBound) {
                 return;
             }
+            window.__articleShareBound = true;
 
-            var nativeButton = share.querySelector('[data-share-action="native"]');
-            if (nativeButton && !navigator.share) {
-                nativeButton.hidden = true;
-            }
-
-            function showCopied(button) {
+            function flashLabel(button, text) {
                 var label = button.querySelector('[data-share-label]');
                 if (!label) {
                     return;
                 }
-                var original = label.textContent;
-                label.textContent = '已复制';
-                window.setTimeout(function () {
-                    label.textContent = original;
+                if (!label.dataset.original) {
+                    label.dataset.original = label.textContent;
+                }
+                label.textContent = text;
+                window.clearTimeout(button._shareTimer);
+                button._shareTimer = window.setTimeout(function () {
+                    label.textContent = label.dataset.original;
                 }, 1500);
             }
 
-            function fallbackCopy(text, done) {
+            function fallbackCopy(text, done, fail) {
                 var textarea = document.createElement('textarea');
                 textarea.value = text;
                 textarea.setAttribute('readonly', '');
@@ -262,43 +261,80 @@
                 document.body.appendChild(textarea);
                 textarea.select();
                 try {
-                    document.execCommand('copy');
-                    done();
+                    if (document.execCommand('copy')) {
+                        done();
+                    } else {
+                        fail();
+                    }
                 } catch (error) {
-                    // ZFH: 复制失败时保持静默，避免影响阅读
+                    fail();
                 }
                 document.body.removeChild(textarea);
             }
 
-            function copyText(text, done) {
+            function copyText(text, done, fail) {
                 if (navigator.clipboard && window.isSecureContext) {
                     navigator.clipboard.writeText(text).then(done, function () {
-                        fallbackCopy(text, done);
+                        fallbackCopy(text, done, fail);
                     });
                 } else {
-                    fallbackCopy(text, done);
+                    fallbackCopy(text, done, fail);
                 }
             }
 
-            share.addEventListener('click', function (event) {
+            document.addEventListener('click', function (event) {
                 var button = event.target.closest('[data-share-action]');
                 if (!button) {
                     return;
                 }
+                var share = button.closest('#article-share');
+                if (!share) {
+                    return;
+                }
+
                 var url = share.dataset.url;
                 var action = button.dataset.shareAction;
                 if (action === 'copy') {
+                    event.preventDefault();
                     copyText(url, function () {
-                        showCopied(button);
+                        flashLabel(button, '已复制');
+                    }, function () {
+                        flashLabel(button, '复制失败');
                     });
-                } else if (action === 'native' && navigator.share) {
-                    navigator.share({
-                        title: share.dataset.title,
-                        url: url
-                    }).catch(function () {
-                        // ZFH: 用户取消分享时不做处理
-                    });
+                } else if (action === 'native') {
+                    event.preventDefault();
+                    if (navigator.share) {
+                        navigator.share({
+                            title: share.dataset.title,
+                            url: url
+                        }).catch(function () {
+                            // ZFH: 用户取消分享时不做处理
+                        });
+                    } else {
+                        // ZFH: 浏览器不支持系统分享时降级为复制链接
+                        copyText(url, function () {
+                            flashLabel(button, '已复制');
+                        }, function () {
+                            flashLabel(button, '复制失败');
+                        });
+                    }
                 }
+            });
+
+            // ZFH: 不支持系统分享的浏览器隐藏“更多”按钮（含 HTMX 刷新后的新内容）
+            function hideNativeButtons(root) {
+                if (navigator.share) {
+                    return;
+                }
+                var buttons = (root || document).querySelectorAll('[data-share-action="native"]');
+                Array.prototype.forEach.call(buttons, function (button) {
+                    button.hidden = true;
+                });
+            }
+
+            hideNativeButtons(document);
+            document.addEventListener('htmx:afterSwap', function () {
+                hideNativeButtons(document);
             });
         })();
     </script>
