@@ -242,6 +242,73 @@ def truncate(content):
     return strip_tags(content)[:150]
 
 
+# ZFH: simple_tag category_subtree：把某个分类的全部后代按层级展开，供导航渲染多层分类
+@register.simple_tag
+def category_subtree(categories, root, max_depth=10):
+    """
+    把 root 分类下的所有后代分类展开成一维列表，元素为 (分类对象, 层级深度, 文章总数)。
+
+    层级深度从 1 开始：直接子分类为 1，孙分类为 2，依此类推。
+    文章总数包含该分类自身及其所有后代分类下的已发布文章——此前导航直接用
+    child.article_set.count，只统计直接挂在该分类下的文章，父分类的数字会偏小。
+
+    导航模板据此做缩进，从而支持三级及更深的分类；此前导航只硬编码了两层，
+    三级分类虽然能创建、页面也能访问，但在导航里完全不显示。
+
+    :param categories: 全部分类（通常传上下文里的 nav_category_list），避免重复查库
+    :param root: 要展开的顶级分类
+    :param max_depth: 最大递归深度，防御性上限，防止数据异常导致死循环
+    :return: [(category, depth, article_count), ...]
+    """
+    # ZFH: 延迟导入聚合函数，避免标签库加载阶段引入额外依赖
+    from django.db.models import Count
+
+    # ZFH: 先把全部分类按父级归组，避免递归时每层都查一次数据库
+    children_map = {}
+    for category in categories:
+        children_map.setdefault(category.parent_category_id, []).append(category)
+
+    # ZFH: 一次查出各分类的直接文章数，避免逐个分类查库（N+1）
+    # ZFH: order_by() 必须清空，否则 Article 的默认排序会混进 GROUP BY 导致分组失效
+    direct_counts = dict(
+        Article.objects.filter(status='p')
+        .order_by()
+        .values_list('category_id')
+        .annotate(total=Count('id'))
+    )
+
+    # ZFH: 汇总缓存，避免同一子树被重复计算
+    count_cache = {}
+
+    def subtree_count(pk):
+        """分类自身文章数 + 所有后代分类文章数"""
+        if pk in count_cache:
+            return count_cache[pk]
+        total = direct_counts.get(pk, 0)
+        for child in children_map.get(pk, []):
+            total += subtree_count(child.pk)
+        count_cache[pk] = total
+        return total
+
+    result = []
+    # ZFH: 记录已展开的分类主键，防止父子关系成环时无限递归
+    visited = {root.pk}
+
+    def walk(parent_pk, depth):
+        # ZFH: 超过最大深度直接停止，保护异常数据
+        if depth > max_depth:
+            return
+        for child in children_map.get(parent_pk, []):
+            if child.pk in visited:
+                continue
+            visited.add(child.pk)
+            result.append((child, depth, subtree_count(child.pk)))
+            walk(child.pk, depth + 1)
+
+    walk(root.pk, 1)
+    return result
+
+
 # ZFH: inclusion_tag load_breadcrumb：渲染文章面包屑，返回从站点根到当前分类的名称与链接列表
 @register.inclusion_tag('blog/tags/breadcrumb.html')
 def load_breadcrumb(article):

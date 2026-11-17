@@ -41,7 +41,7 @@
             {# Each top-level category as its own nav link #}
             {% query nav_category_list parent_category__isnull=True as nav_top_cats %}
             {% for category in nav_top_cats %}
-                {% query nav_category_list parent_category=category as nav_children %}
+                {% category_subtree nav_category_list category as nav_children %}
                 {% if nav_children %}
                 {# Category with children — hover dropdown #}
                 <div class="relative" x-data="{ open: false }"
@@ -65,12 +65,13 @@
                          class="absolute left-0 top-full z-50 mt-1 min-w-48 overflow-hidden rounded-xl border border-border bg-card p-1.5 shadow-xl shadow-foreground/5"
                          role="menu"
                          x-cloak>
-                        {% for child in nav_children %}
+                        {% for child, depth, count in nav_children %}
                             <a href="{{ child.get_absolute_url }}"
                                @click="open = false"
-                               class="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary hover:text-primary">
-                                <span>{{ child.name }}</span>
-                                <span class="text-xs text-muted-foreground tabular-nums">{{ child.article_set.count }}</span>
+                               style="padding-left: calc(0.75rem * {{ depth }})"
+                               class="flex items-center justify-between gap-2 rounded-lg py-2 pr-3 text-sm transition-colors hover:bg-secondary hover:text-primary {% if depth > 1 %}text-muted-foreground{% else %}text-foreground{% endif %}">
+                                <span class="truncate">{{ child.name }}</span>
+                                <span class="text-xs text-muted-foreground tabular-nums">{{ count }}</span>
                             </a>
                         {% endfor %}
                     </div>
@@ -206,7 +207,7 @@
             {# Mobile Categories — flat, mirroring desktop nav #}
             {% query nav_category_list parent_category__isnull=True as mobile_top_cats %}
             {% for category in mobile_top_cats %}
-                {% query nav_category_list parent_category=category as mobile_children %}
+                {% category_subtree nav_category_list category as mobile_children %}
                 {% if mobile_children %}
                 {# Parent with children: link + expandable sub-items #}
                 <div x-data="{ mobileSubOpen: false }">
@@ -228,12 +229,13 @@
                     <div x-show="mobileSubOpen" x-transition
                          class="ml-4 flex flex-col gap-0.5 border-l-2 border-border pl-3"
                          x-cloak>
-                        {% for child in mobile_children %}
+                        {% for child, depth, count in mobile_children %}
                             <a href="{{ child.get_absolute_url }}"
                                @click="$store.nav.mobileOpen = false"
-                               class="flex items-center justify-between rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-primary">
-                                <span>{{ child.name }}</span>
-                                <span class="text-xs tabular-nums">{{ child.article_set.count }}</span>
+                               style="padding-left: calc(0.75rem * {{ depth }})"
+                               class="flex items-center justify-between gap-2 rounded-lg py-1.5 pr-3 text-sm transition-colors hover:bg-secondary hover:text-primary {% if depth > 1 %}text-muted-foreground/80{% else %}text-muted-foreground{% endif %}">
+                                <span class="truncate">{{ child.name }}</span>
+                                <span class="text-xs tabular-nums">{{ count }}</span>
                             </a>
                         {% endfor %}
                     </div>
