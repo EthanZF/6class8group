@@ -1,0 +1,100 @@
+文章置顶与精选 —— 改动说明
+================================
+
+一、功能说明
+------------
+给文章增加两个标记：
+
+  置顶(is_top)     勾选后，该文章在所有文章列表中排在最前面
+  精选(is_featured) 勾选后，该文章会出现在首页顶部的「精选」区域，
+                    同时在列表和详情页显示「精选」标记
+
+后台「文章」列表页可以直接勾选这两列（即时保存），
+也可以勾选多篇文章后用下拉框批量「设为置顶 / 取消置顶 / 设为精选 / 取消精选」，
+还可以用右侧筛选栏只看置顶或精选的文章。
+
+前台效果：
+  · 首页顶部多出一块「精选」区域，列出被标记为精选的文章；
+  · 文章列表的每条记录在分类旁边显示「置顶」「精选」小标签；
+  · 文章详情页在标题下方显示同样的标签。
+
+二、改动文件（共 8 个）
+----------------------
+
+  修改：blog/models.py
+        Article 增加 is_top、is_featured 两个布尔字段；
+        Meta.ordering 改为 ['-is_top', '-article_order', '-pub_time']，
+        让置顶文章排在最前。
+
+  新增：blog/migrations/0009_article_is_top_article_is_featured.py
+        为上面两个字段写的数据库迁移，依赖 blog 应用的 0008。
+
+  修改：blog/admin.py
+        list_display 增加 is_top、is_featured 两列；
+        增加 list_editable，可在列表页直接勾选；
+        list_filter 增加这两个筛选条件；
+        新增四个批量操作函数及其显示名称，并在批量改完后清理列表缓存。
+
+  修改：blog/views.py
+        首页视图 IndexView 的上下文里增加 featured_articles，
+        用来渲染「精选」区域。
+
+  修改：templates/blog/article_index.html
+        在文章列表上方增加「精选」区块。
+
+  修改：templates/blog/tags/article_info.html
+        列表项的分类标签后面增加「置顶」「精选」两个小标签。
+
+  修改：templates/blog/article_detail.html
+        详情页标题下方增加「置顶」「精选」标签。
+
+  新增：blog/test_article_top_featured.py
+        10 个测试用例，覆盖字段默认值、列表排序、精选筛选、
+        后台批量操作、首页精选区、列表与详情页标记显示。
+
+三、部署步骤
+------------
+
+  1. 把这 8 个文件按原目录结构覆盖到项目里（新增的两个是全新文件）。
+
+  2. 执行数据库迁移：
+
+         python manage.py migrate
+
+     看到 "Applying blog.0009_article_is_top_article_is_featured... OK" 即成功。
+
+  3. 重启开发服务器：
+
+         python manage.py runserver
+
+  4. 打开后台 /admin/ ，进入「文章」，勾选某篇文章的「置顶」或「精选」保存，
+     回到首页即可看到效果。
+
+     提示：首页列表有 3 小时缓存，正常保存文章会触发信号自动清缓存；
+     如果是用批量操作或直接改数据库，缓存不会自动清，
+     可以执行 python manage.py clear_cache 或等缓存过期。
+
+四、验证结果（在开发机上已跑通）
+--------------------------------
+
+  python manage.py makemigrations --check --dry-run
+      → No changes detected（说明迁移与模型完全一致）
+
+  python manage.py test blog.test_article_top_featured
+      → Ran 10 tests, OK
+
+  python manage.py test blog
+      → Ran 134 tests, OK（没有影响原有功能）
+
+五、注意事项
+------------
+
+  1. 迁移文件的依赖写的是 blog 的 0008。如果对方仓库里 blog 最新的迁移编号
+     不是 0008（比如已经有人加过 0009），请先删除本迁移文件，
+     再执行 python manage.py makemigrations blog 重新生成一个，
+     字段定义和 Meta 改动已经写在 models.py 里，重新生成的迁移内容一致。
+
+  2. 本次只改了上面 8 个文件，其他代码都没有动。
+     blog/admin.py 里原有的 ArticlelAdmin 拼写笔误保持原样，未做改名。
+
+  3. 数据库只是新增两个带默认值的布尔列，不会影响已有文章数据。
