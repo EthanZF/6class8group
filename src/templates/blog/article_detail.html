@@ -96,6 +96,11 @@
                             {% endfor %}
                         </div>
 
+                        {# 点赞 / 收藏 #}
+                        {% if article.type == 'a' %}
+                            {% include 'blog/tags/article_reactions.html' %}
+                        {% endif %}
+
                         {# Prev/Next Navigation #}
                         {% if article.type == 'a' and next_article or prev_article %}
                             <div class="mt-8 grid gap-4 {% if next_article and prev_article %}md:grid-cols-2{% endif %}">
