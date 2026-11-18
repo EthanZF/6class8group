@@ -109,6 +109,36 @@
                             {% endfor %}
                         </div>
 
+                        {# Share Bar #}
+                        <div id="article-share"
+                             class="mt-6 flex flex-wrap items-center gap-2"
+                             data-url="{{ article.get_full_url }}"
+                             data-title="{{ article.title }}">
+                            <span class="mr-1 text-xs font-medium text-muted-foreground">分享</span>
+                            <button type="button" data-share-action="copy"
+                                    class="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs text-foreground/80 transition-colors hover:border-primary/30 hover:text-primary">
+                                <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5m9.656-1.5l1.5-1.5a4 4 0 00-5.656-5.656l-3 3a4 4 0 000 5.656"/>
+                                </svg>
+                                <span data-share-label>复制链接</span>
+                            </button>
+                            <a href="https://service.weibo.com/share/share.php?url={{ article.get_full_url|urlencode }}&amp;title={{ article.title|urlencode }}"
+                               target="_blank" rel="noopener nofollow"
+                               class="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs text-foreground/80 transition-colors hover:border-primary/30 hover:text-primary">
+                                <svg class="size-3.5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M10.1 19.7c-4.2 0-7.6-2-7.6-4.6 0-1.3.8-2.8 2.3-4.2 2-1.9 4.3-2.7 5.2-1.9.4.4.4 1 .1 1.8-.1.4.1.6.5.5 2-.5 3.8-.3 4.4.7.3.5.3 1.2 0 1.9-.1.3 0 .5.3.6 1 .3 1.6 1 1.6 1.9 0 1.9-3 3.3-6.8 3.3zm-.6-6.9c-2 .2-3.5 1.5-3.4 3 .1 1.4 1.7 2.3 3.6 2.1 2-.2 3.4-1.5 3.3-2.9-.1-1.4-1.6-2.3-3.5-2.2zM19.9 6.9c-.3-.1-.5-.5-.4-.8.1-.4.2-.8.2-1.2 0-1.9-1.6-3.4-3.5-3.4-.5 0-1 .1-1.4.3-.3.1-.7 0-.9-.3-.2-.3 0-.7.3-.9.6-.3 1.3-.4 2-.4 2.7 0 4.9 2.1 4.9 4.7 0 .6-.1 1.1-.3 1.7-.1.3-.5.4-.9.3z"/>
+                                </svg>
+                                微博
+                            </a>
+                            <button type="button" data-share-action="native"
+                                    class="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs text-foreground/80 transition-colors hover:border-primary/30 hover:text-primary">
+                                <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342a3 3 0 100-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 9.316a3 3 0 105.368 1.684 3 3 0 00-5.368-1.684zm0-9.316a3 3 0 105.368-1.684 3 3 0 00-5.368 1.684z"/>
+                                </svg>
+                                <span data-share-label>更多</span>
+                            </button>
+                        </div>
+
                         {# Prev/Next Navigation #}
                         {% if article.type == 'a' and next_article or prev_article %}
                             <div class="mt-8 grid gap-4 {% if next_article and prev_article %}md:grid-cols-2{% endif %}">
@@ -210,3 +240,115 @@
     </div>
 {% endblock %}
 
+{% block compress_js %}
+    <script>
+        // ZFH: 文章分享工具条：复制链接 / 系统原生分享
+        // 使用 document 事件委托，兼容 HTMX 局部刷新（#main 内容替换后脚本不会重新执行）
+        (function () {
+            if (window.__articleShareBound) {
+                return;
+            }
+            window.__articleShareBound = true;
+
+            function flashLabel(button, text) {
+                var label = button.querySelector('[data-share-label]');
+                if (!label) {
+                    return;
+                }
+                if (!label.dataset.original) {
+                    label.dataset.original = label.textContent;
+                }
+                label.textContent = text;
+                window.clearTimeout(button._shareTimer);
+                button._shareTimer = window.setTimeout(function () {
+                    label.textContent = label.dataset.original;
+                }, 1500);
+            }
+
+            function fallbackCopy(text, done, fail) {
+                var textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.setAttribute('readonly', '');
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    if (document.execCommand('copy')) {
+                        done();
+                    } else {
+                        fail();
+                    }
+                } catch (error) {
+                    fail();
+                }
+                document.body.removeChild(textarea);
+            }
+
+            function copyText(text, done, fail) {
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(done, function () {
+                        fallbackCopy(text, done, fail);
+                    });
+                } else {
+                    fallbackCopy(text, done, fail);
+                }
+            }
+
+            document.addEventListener('click', function (event) {
+                var button = event.target.closest('[data-share-action]');
+                if (!button) {
+                    return;
+                }
+                var share = button.closest('#article-share');
+                if (!share) {
+                    return;
+                }
+
+                var url = share.dataset.url;
+                var action = button.dataset.shareAction;
+                if (action === 'copy') {
+                    event.preventDefault();
+                    copyText(url, function () {
+                        flashLabel(button, '已复制');
+                    }, function () {
+                        flashLabel(button, '复制失败');
+                    });
+                } else if (action === 'native') {
+                    event.preventDefault();
+                    if (navigator.share) {
+                        navigator.share({
+                            title: share.dataset.title,
+                            url: url
+                        }).catch(function () {
+                            // ZFH: 用户取消分享时不做处理
+                        });
+                    } else {
+                        // ZFH: 浏览器不支持系统分享时降级为复制链接
+                        copyText(url, function () {
+                            flashLabel(button, '已复制');
+                        }, function () {
+                            flashLabel(button, '复制失败');
+                        });
+                    }
+                }
+            });
+
+            // ZFH: 不支持系统分享的浏览器隐藏“更多”按钮（含 HTMX 刷新后的新内容）
+            function hideNativeButtons(root) {
+                if (navigator.share) {
+                    return;
+                }
+                var buttons = (root || document).querySelectorAll('[data-share-action="native"]');
+                Array.prototype.forEach.call(buttons, function (button) {
+                    button.hidden = true;
+                });
+            }
+
+            hideNativeButtons(document);
+            document.addEventListener('htmx:afterSwap', function () {
+                hideNativeButtons(document);
+            });
+        })();
+    </script>
+{% endblock %}
