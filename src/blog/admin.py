@@ -9,6 +9,8 @@ from django.utils.translation import gettext_lazy as _
 # ZFH: 注册本应用模型（Django 约定：在此处 import 模型以便 admin 自动发现）
 # Register your models here.
 from .models import Article, Category, Tag, Links, SideBar, BlogSettings
+# ZFH: 批量操作走 queryset.update()，不会触发 post_save 信号，需要手动失效列表缓存
+from djangoblog.utils import invalidate_list_cache
 
 
 class ArticleForm(forms.ModelForm):
@@ -41,11 +43,45 @@ def open_article_commentstatus(modeladmin, request, queryset):
     queryset.update(comment_status='o')
 
 
+def _clear_article_list_cache():
+    # ZFH: 批量操作调用的是 queryset.update()，不会触发 post_save 信号，
+    # ZFH: 所以这里手动让列表缓存失效（版本号 +1，首页与各分页一起作废）
+    invalidate_list_cache()
+
+
+def set_article_top(modeladmin, request, queryset):
+    # ZFH: admin 批量操作：把选中文章设为置顶
+    queryset.update(is_top=True)
+    _clear_article_list_cache()
+
+
+def unset_article_top(modeladmin, request, queryset):
+    # ZFH: admin 批量操作：取消选中文章的置顶
+    queryset.update(is_top=False)
+    _clear_article_list_cache()
+
+
+def set_article_featured(modeladmin, request, queryset):
+    # ZFH: admin 批量操作：把选中文章设为精选
+    queryset.update(is_featured=True)
+    _clear_article_list_cache()
+
+
+def unset_article_featured(modeladmin, request, queryset):
+    # ZFH: admin 批量操作：取消选中文章的精选
+    queryset.update(is_featured=False)
+    _clear_article_list_cache()
+
+
 # ZFH: 为批量操作设置后台下拉菜单中显示的中文/本地化描述文案
 makr_article_publish.short_description = _('Publish selected articles')
 draft_article.short_description = _('Draft selected articles')
 close_article_commentstatus.short_description = _('Close article comments')
 open_article_commentstatus.short_description = _('Open article comments')
+set_article_top.short_description = '设为置顶'
+unset_article_top.short_description = '取消置顶'
+set_article_featured.short_description = '设为精选'
+unset_article_featured.short_description = '取消精选'
 
 
 class ArticlelAdmin(admin.ModelAdmin):
@@ -62,9 +98,14 @@ class ArticlelAdmin(admin.ModelAdmin):
         'views',
         'status',
         'type',
-        'article_order')  # ZFH: 列表页展示的字段列
+        'article_order',
+        'is_top',
+        'is_featured')  # ZFH: 列表页展示的字段列
     list_display_links = ('id', 'title')  # ZFH: 可点击进入编辑页的字段
-    list_filter = ('status', 'type', 'category')  # ZFH: 右侧过滤器字段
+    # ZFH: 置顶/精选可以在列表页直接勾选保存，不必逐篇进详情页
+    list_editable = ('is_top', 'is_featured')
+    # ZFH: 右侧过滤器字段，新增按置顶/精选筛选
+    list_filter = ('status', 'type', 'category', 'is_top', 'is_featured')
     date_hierarchy = 'creation_time'  # ZFH: 顶部按创建时间层级导航
     filter_horizontal = ('tags',)  # ZFH: 多选标签使用左右穿梭框
     exclude = ('creation_time', 'last_modify_time')  # ZFH: 编辑页排除自动时间字段
@@ -73,7 +114,11 @@ class ArticlelAdmin(admin.ModelAdmin):
         makr_article_publish,
         draft_article,
         close_article_commentstatus,
-        open_article_commentstatus]  # ZFH: 注册批量操作动作
+        open_article_commentstatus,
+        set_article_top,
+        unset_article_top,
+        set_article_featured,
+        unset_article_featured]  # ZFH: 注册批量操作动作
     raw_id_fields = ('author', 'category',)  # ZFH: 外键字段用原始ID输入，避免下拉加载全部数据
 
     def link_to_category(self, obj):

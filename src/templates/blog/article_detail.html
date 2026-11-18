@@ -61,6 +61,18 @@
                             {% endif %}
                         </div>
 
+                        {# 置顶 / 精选 标记 #}
+                        {% if article.is_top or article.is_featured %}
+                            <div class="mb-4 flex flex-wrap items-center gap-2">
+                                {% if article.is_top %}
+                                    <span class="inline-flex items-center rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-600">置顶</span>
+                                {% endif %}
+                                {% if article.is_featured %}
+                                    <span class="inline-flex items-center rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-600">精选</span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
                         <div class="mb-6 h-px bg-border/60"></div>
 
                         {# Content #}

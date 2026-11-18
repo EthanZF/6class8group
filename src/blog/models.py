@@ -133,6 +133,14 @@ class Article(BaseModel):
         _('order'), blank=False, null=False, default=0)
     # ZFH: 是否显示文章目录
     show_toc = models.BooleanField(_('show toc'), blank=False, null=False, default=False)
+    # ZFH: 置顶，勾选后在文章列表里排在最前面（由 Meta.ordering 的第一项控制）
+    is_top = models.BooleanField(
+        '置顶', default=False, db_index=True,
+        help_text='勾选后该文章在文章列表里排在最前面')
+    # ZFH: 精选，勾选后除了在列表与详情页显示标记，还会出现在首页的精选区域
+    is_featured = models.BooleanField(
+        '精选', default=False, db_index=True,
+        help_text='勾选后该文章会出现在首页的精选区域')
     # ZFH: 所属分类，必须指定，级联删除
     category = models.ForeignKey(
         'Category',
@@ -152,8 +160,8 @@ class Article(BaseModel):
         return self.title
 
     class Meta:
-        # ZFH: 默认按排序权重降序 + 发布时间降序排列
-        ordering = ['-article_order', '-pub_time']
+        # ZFH: 置顶文章排最前，其次按人工排序号降序，最后按发布时间降序
+        ordering = ['-is_top', '-article_order', '-pub_time']
         # ZFH: 后台展示名称走国际化，单复数一致；get_latest_by 支持 latest() 按 id 取最新一篇
         verbose_name = _('article')
         verbose_name_plural = verbose_name

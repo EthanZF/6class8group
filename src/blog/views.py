@@ -98,6 +98,10 @@ class IndexView(OptimizedArticleQueryMixin, ArticleListView):
         context['seo_title'] = f"{blog_setting.site_name} | {blog_setting.site_description}"
         context['seo_description'] = blog_setting.site_seo_description
         context['seo_keywords'] = blog_setting.site_keywords
+        # ZFH: 首页精选区：取标记为精选的已发布文章，置顶的排前面，最多 6 篇
+        context['featured_articles'] = Article.objects.filter(
+            type='a', status='p', is_featured=True
+        ).select_related('category').order_by('-is_top', '-pub_time')[:6]
         return context
 
 
