@@ -5,21 +5,23 @@ import uuid
 
 # ZFH: 导入 Django 配置、分页、HTTP 响应、快捷函数、静态资源、时区与国际化等核心依赖
 from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.templatetags.static import static
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 # ZFH: 引入 Haystack 提供的搜索视图基类，用于实现全文搜索页面
 from haystack.views import SearchView
 
 # ZFH: 导入本项目模型、评论表单、插件钩子、通用工具函数等业务依赖
-from blog.models import Article, Category, LinkShowType, Links, Tag
+from blog.models import Article, ArticleBookmark, ArticleLike, Category, LinkShowType, Links, Tag
 from comments.forms import CommentForm
 from djangoblog.plugin_manage import hooks
 from djangoblog.plugin_manage.hook_constants import ARTICLE_CONTENT_HOOK_NAME
@@ -217,6 +219,18 @@ class ArticleDetailView(DetailView):
         # Action Hook, 通知插件"文章详情已获取"
         # ZFH: 触发 after_article_body_get 钩子，通知插件文章正文已获取
         hooks.run_action('after_article_body_get', article=article, request=self.request)
+
+        # ZFH: 点赞/收藏的计数与当前用户状态，供详情页按钮渲染
+        context['like_count'] = article.likes.count()
+        context['bookmark_count'] = article.bookmarks.count()
+        context['is_liked'] = False
+        context['is_bookmarked'] = False
+        # ZFH: 匿名用户不查库，直接按未点赞/未收藏处理
+        if self.request.user.is_authenticated:
+            context['is_liked'] = ArticleLike.objects.filter(
+                article=article, user=self.request.user).exists()
+            context['is_bookmarked'] = ArticleBookmark.objects.filter(
+                article=article, user=self.request.user).exists()
         return context
 
 
@@ -518,3 +532,105 @@ def clean_cache_view(request):
     # ZFH: 清空全局缓存
     cache.clear()
     return HttpResponse('ok')
+
+
+# ZFH: 点赞/收藏按钮的局部模板，HTMX 请求直接返回这段 HTML
+REACTION_TEMPLATE = 'blog/tags/article_reactions.html'
+
+
+def _render_article_reactions(request, article):
+    """渲染点赞/收藏按钮，返回 HTML；非 HTMX 请求由调用方转成 JSON"""
+    return render(request, REACTION_TEMPLATE, {
+        'article': article,
+        'like_count': article.likes.count(),
+        'bookmark_count': article.bookmarks.count(),
+        'is_liked': ArticleLike.objects.filter(
+            article=article, user=request.user).exists(),
+        'is_bookmarked': ArticleBookmark.objects.filter(
+            article=article, user=request.user).exists(),
+    })
+
+
+def _anonymous_response(request):
+    """未登录：HTMX 用 HX-Redirect 跳登录页，普通请求返回 401 JSON"""
+    if request.headers.get('HX-Request'):
+        response = HttpResponse(status=401)
+        response['HX-Redirect'] = f'{settings.LOGIN_URL}?next={request.get_full_path()}'
+        return response
+    return JsonResponse({'error': 'login required'}, status=401)
+
+
+# ZFH: 点赞切换：已赞则取消，未赞则新增，只接受 POST
+@require_POST
+def article_like_toggle(request, article_id):
+    article = get_object_or_404(Article, pk=article_id)
+    # ZFH: 匿名用户不允许点赞，引导去登录
+    if not request.user.is_authenticated:
+        return _anonymous_response(request)
+
+    # ZFH: get_or_create 命中唯一约束，已存在说明是"取消点赞"
+    like, created = ArticleLike.objects.get_or_create(
+        article=article, user=request.user)
+    if not created:
+        like.delete()
+    count = article.likes.count()
+
+    if request.headers.get('HX-Request'):
+        return _render_article_reactions(request, article)
+    return JsonResponse({'liked': created, 'count': count})
+
+
+# ZFH: 收藏切换：已收藏则取消，未收藏则新增，只接受 POST
+@require_POST
+def article_bookmark_toggle(request, article_id):
+    article = get_object_or_404(Article, pk=article_id)
+    # ZFH: 匿名用户不允许收藏，引导去登录
+    if not request.user.is_authenticated:
+        return _anonymous_response(request)
+
+    bookmark, created = ArticleBookmark.objects.get_or_create(
+        article=article, user=request.user)
+    if not created:
+        bookmark.delete()
+    count = article.bookmarks.count()
+
+    if request.headers.get('HX-Request'):
+        return _render_article_reactions(request, article)
+    return JsonResponse({'bookmarked': created, 'count': count})
+
+
+# ZFH: 我点赞过的文章，按点赞时间倒序，仅本人可见
+class MyLikedArticlesView(LoginRequiredMixin, ListView):
+    template_name = 'blog/my_articles.html'
+    context_object_name = 'article_list'
+    paginate_by = settings.PAGINATE_BY
+
+    def get_queryset(self):
+        # ZFH: 借由 likes 外键过滤，unique_together 保证不会出现重复文章
+        return Article.objects.filter(
+            likes__user=self.request.user, type='a'
+        ).select_related('category', 'author').order_by('-likes__created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_type'] = '我点赞的文章'
+        context['empty_hint'] = '你还没有点赞过任何文章'
+        return context
+
+
+# ZFH: 我收藏的文章，按收藏时间倒序，仅本人可见
+class MyBookmarkedArticlesView(LoginRequiredMixin, ListView):
+    template_name = 'blog/my_articles.html'
+    context_object_name = 'article_list'
+    paginate_by = settings.PAGINATE_BY
+
+    def get_queryset(self):
+        return Article.objects.filter(
+            bookmarks__user=self.request.user, type='a'
+        ).select_related('category', 'author').order_by('-bookmarks__created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_type'] = '我的收藏'
+        context['empty_hint'] = '你还没有收藏任何文章'
+        return context

@@ -109,6 +109,11 @@
                             {% endfor %}
                         </div>
 
+                        {# 点赞 / 收藏 #}
+                        {% if article.type == 'a' %}
+                            {% include 'blog/tags/article_reactions.html' %}
+                        {% endif %}
+
                         {# Share Bar #}
                         <div id="article-share"
                              class="mt-6 flex flex-wrap items-center gap-2"

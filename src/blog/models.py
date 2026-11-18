@@ -533,3 +533,73 @@ class BlogSettings(models.Model):
         from djangoblog.utils import cache
         # ZFH: 配置影响导航、侧边栏等多处页面，粗暴清空缓存以保证立即生效
         cache.clear()
+
+
+# ZFH: 文章点赞表，一条记录表示"某个用户赞过某篇文章"
+class ArticleLike(models.Model):
+    """文章点赞"""
+    # ZFH: 被点赞的文章，反向查询用 article.likes
+    article = models.ForeignKey(
+        Article,
+        verbose_name=_('article'),
+        on_delete=models.CASCADE,
+        related_name='likes'
+    )
+    # ZFH: 点赞的用户
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_('user'),
+        on_delete=models.CASCADE,
+        related_name='article_likes'
+    )
+    # ZFH: 点赞时间，新增时自动写入
+    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('article like')
+        verbose_name_plural = _('article likes')
+        # ZFH: 同一用户对同一篇文章只能点一次赞，数据库层保证唯一
+        unique_together = ['article', 'user']
+        # ZFH: 按文章统计点赞数时走索引
+        indexes = [
+            models.Index(fields=['article'], name='idx_article_like'),
+        ]
+
+    # ZFH: 后台显示成"用户名 likes article 文章ID"，便于辨认
+    def __str__(self):
+        return f'{self.user.username} likes article {self.article_id}'
+
+
+# ZFH: 文章收藏表，一条记录表示"某个用户收藏了某篇文章"
+class ArticleBookmark(models.Model):
+    """文章收藏"""
+    # ZFH: 被收藏的文章，反向查询用 article.bookmarks
+    article = models.ForeignKey(
+        Article,
+        verbose_name=_('article'),
+        on_delete=models.CASCADE,
+        related_name='bookmarks'
+    )
+    # ZFH: 收藏的用户
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_('user'),
+        on_delete=models.CASCADE,
+        related_name='article_bookmarks'
+    )
+    # ZFH: 收藏时间，新增时自动写入
+    created_at = models.DateTimeField(_('created at'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('article bookmark')
+        verbose_name_plural = _('article bookmarks')
+        # ZFH: 同一用户对同一篇文章只保留一条收藏记录
+        unique_together = ['article', 'user']
+        # ZFH: 按文章统计收藏数时走索引
+        indexes = [
+            models.Index(fields=['article'], name='idx_article_bookmark'),
+        ]
+
+    # ZFH: 后台显示成"用户名 bookmarks article 文章ID"，便于辨认
+    def __str__(self):
+        return f'{self.user.username} bookmarks article {self.article_id}'

@@ -71,6 +71,26 @@ urlpatterns = [
         r'upload',
         views.fileupload,
         name='upload'),
+    # ZFH: 点赞切换（POST），返回按钮局部模板或 JSON
+    path(
+        r'article/<int:article_id>/like/',
+        views.article_like_toggle,
+        name='article_like'),
+    # ZFH: 收藏切换（POST），返回按钮局部模板或 JSON
+    path(
+        r'article/<int:article_id>/bookmark/',
+        views.article_bookmark_toggle,
+        name='article_bookmark'),
+    # ZFH: 我点赞过的文章（需登录）
+    path(
+        r'my/likes/',
+        views.MyLikedArticlesView.as_view(),
+        name='my_liked'),
+    # ZFH: 我收藏的文章（需登录）
+    path(
+        r'my/bookmarks/',
+        views.MyBookmarkedArticlesView.as_view(),
+        name='my_bookmarks'),
     # ZFH: 清理缓存接口（函数视图）
     path(
         r'clean',

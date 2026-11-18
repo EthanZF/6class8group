@@ -1,0 +1,82 @@
+{% extends 'share_layout/base.html' %}
+{% load blog_tags %}
+{% load i18n %}
+
+{# 我点赞的文章 / 我的收藏，两个页面共用此模板 #}
+
+{% block header %}
+    <title>{{ page_type }} | {{ SITE_NAME }}</title>
+    <meta name="robots" content="noindex, nofollow"/>
+{% endblock %}
+
+{% block content %}
+    <div class="mx-auto max-w-6xl px-4 py-4 lg:px-6 lg:py-6">
+        <div class="grid gap-6 lg:grid-cols-[1fr_300px]">
+            <main>
+                {# 标题 #}
+                <div class="mb-6 flex flex-wrap items-end justify-between gap-2">
+                    <div>
+                        <p class="mb-1 text-xs text-muted-foreground">个人中心</p>
+                        <h2 class="flex items-center gap-2 text-xl font-bold text-foreground m-0">
+                            <span class="h-5 w-1 shrink-0 rounded-full bg-primary"></span>
+                            {{ page_type }}
+                        </h2>
+                    </div>
+                    {% if page_obj %}
+                        <span class="text-xs text-muted-foreground">共 {{ page_obj.paginator.count }} 篇</span>
+                    {% endif %}
+                </div>
+
+                {# 文章列表，复用首页的卡片样式 #}
+                <div class="flex flex-col gap-5">
+                    {% for article in article_list %}
+                        {% load_article_detail article True user %}
+                    {% empty %}
+                        <div class="rounded-xl border border-dashed border-border bg-card/50 px-6 py-16 text-center">
+                            <svg class="mx-auto mb-3 size-10 text-muted-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                      d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                            </svg>
+                            <p class="text-sm text-muted-foreground">{{ empty_hint }}</p>
+                            <a href="{% url 'blog:index' %}"
+                               class="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+                                去看看文章
+                                <svg class="size-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {# 分页 #}
+                {% if is_paginated %}
+                    <nav class="mt-8 flex items-center justify-center gap-3" aria-label="分页">
+                        {% if page_obj.has_previous %}
+                            <a href="?page={{ page_obj.previous_page_number }}"
+                               class="rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-foreground transition-colors hover:border-primary/30 hover:text-primary">
+                                上一页
+                            </a>
+                        {% endif %}
+                        <span class="text-sm tabular-nums text-muted-foreground">
+                            {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                        </span>
+                        {% if page_obj.has_next %}
+                            <a href="?page={{ page_obj.next_page_number }}"
+                               class="rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-foreground transition-colors hover:border-primary/30 hover:text-primary">
+                                下一页
+                            </a>
+                        {% endif %}
+                    </nav>
+                {% endif %}
+            </main>
+
+            {# 侧边栏 #}
+            <div class="hidden lg:block">
+                <div class="sticky top-20">
+                    {% load_sidebar user "p" %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

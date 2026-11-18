@@ -1,0 +1,65 @@
+{% load i18n %}
+{# 文章点赞与收藏按钮：HTMX 点击后局部刷新，整块替换自身 #}
+<div id="article-reactions" class="mt-8 flex flex-wrap items-center gap-3 border-t border-border pt-6">
+    {% if user.is_authenticated %}
+        {# 点赞：已赞则高亮，再次点击取消 #}
+        <button type="button"
+                hx-post="{% url 'blog:article_like' article.pk %}"
+                hx-target="#article-reactions"
+                hx-swap="outerHTML"
+                {# 显式覆盖父级 #main 继承下来的 hx-select/hx-push-url，避免片段被过滤为空 #}
+                hx-select="#article-reactions"
+                hx-push-url="false"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                title="{% if is_liked %}取消点赞{% else %}点赞{% endif %}"
+                class="inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors
+                       {% if is_liked %}border-primary/30 bg-primary/10 text-primary{% else %}border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-primary{% endif %}">
+            <svg class="size-4" fill="{% if is_liked %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+            <span id="like-count">{{ like_count }}</span>
+        </button>
+
+        {# 收藏：已收藏则高亮，再次点击取消 #}
+        <button type="button"
+                hx-post="{% url 'blog:article_bookmark' article.pk %}"
+                hx-target="#article-reactions"
+                hx-swap="outerHTML"
+                {# 显式覆盖父级 #main 继承下来的 hx-select/hx-push-url，避免片段被过滤为空 #}
+                hx-select="#article-reactions"
+                hx-push-url="false"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                title="{% if is_bookmarked %}取消收藏{% else %}收藏{% endif %}"
+                class="inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors
+                       {% if is_bookmarked %}border-primary/30 bg-primary/10 text-primary{% else %}border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-primary{% endif %}">
+            <svg class="size-4" fill="{% if is_bookmarked %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+            </svg>
+            <span id="bookmark-count">{{ bookmark_count }}</span>
+        </button>
+    {% else %}
+        {# 未登录：引导登录，登录后回到当前文章 #}
+        <a href="{% url 'account:login' %}?next={{ request.get_full_path }}"
+           rel="nofollow"
+           class="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary"
+           hx-boost="false">
+            <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+            </svg>
+            点赞 {{ like_count }}
+        </a>
+        <a href="{% url 'account:login' %}?next={{ request.get_full_path }}"
+           rel="nofollow"
+           class="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary"
+           hx-boost="false">
+            <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+            </svg>
+            收藏 {{ bookmark_count }}
+        </a>
+    {% endif %}
+</div>
